@@ -11,13 +11,17 @@
         v-for="(marker, i) in markers"
         :key="i"
         :lat-lng="marker.latlng"
-      />
+      >
+        <l-popup v-if="marker.image">
+          <v-img :src="marker.image" />
+        </l-popup>
+      </l-marker>
     </l-map>
   </div>
 </template>
 
 <script>
-import { LMap, LTileLayer, LMarker } from "vue2-leaflet";
+import { LMap, LTileLayer, LMarker, LPopup } from "vue2-leaflet";
 import L from "leaflet";
 
 export default {
@@ -25,7 +29,8 @@ export default {
   components: {
     LMap,
     LTileLayer,
-    LMarker
+    LMarker,
+    LPopup,
   },
   props: {
     markers: {
