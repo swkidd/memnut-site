@@ -4,9 +4,9 @@
       <v-icon>mdi-plus</v-icon>
     </v-btn>
     <v-card class="image-dialog" v-show="dialog.addImage" fullscreen>
-      <v-card-title>
+      <v-card-text height="100%">
         <img-canvas :width="canvasWidth" :height="canvasHeight" />
-      </v-card-title>
+      </v-card-text>
       <v-divider />
       <v-card-actions>
         <v-spacer />
