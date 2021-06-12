@@ -17,12 +17,14 @@
         v-if="currentObjectType === 'textbox'"
         class="mx-3"
         :color="color.background"
+        icon="mdi-format-color-fill"
         @change="setAttr('backgroundColor', $event)"
       />
       <color-picker
         v-if="currentObjectType === 'textbox'"
         class="mx-3"
         :color="color.text"
+        icon="mdi-format-color-text"
         @change="setAttr('fill', $event)"
       />
     </v-toolbar>
