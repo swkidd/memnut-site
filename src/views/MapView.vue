@@ -1,32 +1,19 @@
 <template>
   <div class="text-center">
-    <v-dialog v-model="dialog.addImage" fullscreen>
-      <template v-slot:activator="{ on, attrs }">
-        <v-btn fab class="floating-button" v-bind="attrs" v-on="on">
-          <v-icon>mdi-plus</v-icon>
-        </v-btn>
-      </template>
-      <v-card width="100%">
-        <v-card-title>
-          Add Marker
-        </v-card-title>
-        <v-card-text>
-          <v-file-input
-            v-model="image"
-            label="File input"
-            outlined
-            dense
-            accept="image/*"
-          />
-          <img-canvas :width="canvasWidth" :height="canvasHeight" />
-        </v-card-text>
-        <v-card-actions>
-          <v-spacer />
-          <v-btn text @click="addMarker">Add</v-btn>
-          <v-btn text @click="cancelAddMarker">Cancel</v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
+    <v-btn fab class="floating-button" @click="dialog.addImage = true">
+      <v-icon>mdi-plus</v-icon>
+    </v-btn>
+    <v-card class="image-dialog" v-show="dialog.addImage" fullscreen>
+      <v-card-title>
+        <img-canvas :width="canvasWidth" :height="canvasHeight" />
+      </v-card-title>
+      <v-divider />
+      <v-card-actions>
+        <v-spacer />
+        <v-btn text @click="addMarker">Add</v-btn>
+        <v-btn text @click="cancelAddMarker">Cancel</v-btn>
+      </v-card-actions>
+    </v-card>
     <main-map :markers="markers" @click="mapClick($event)" />
     <v-snackbar v-model="clickable" timeout="-1" dark>
       <p class="text-center font-weight-bold">
@@ -41,32 +28,31 @@ export default {
   name: "MapView",
   components: {
     MainMap: () => import("@/components/MainMap"),
-    ImgCanvas: () => import('@/components/ImgCanvas')
+    ImgCanvas: () => import("@/components/ImgCanvas")
   },
   data() {
     return {
       model: true,
       dialog: {
-        addImage: false
+        addImage: false,
+        buttons: false
       },
-      image: null,
       markers: [],
       clickable: false
     };
   },
   computed: {
-    canvasWidth () {
-      return window.innerWidth - 50
+    canvasWidth() {
+      return window.innerWidth - 50;
     },
-    canvasHeight () {
-      return window.innerHeight - 200
-    },
-    imageURL() {
-      if (!this.image) return null;
-      return URL.createObjectURL(this.image);
+    canvasHeight() {
+      return window.innerHeight - 200;
     }
   },
   methods: {
+    keydown(e) {
+      this.$emit("keydown", e);
+    },
     cancelAddMarker() {
       this.dialog.addImage = false;
     },
@@ -78,10 +64,10 @@ export default {
       if (this.clickable) {
         const marker = {
           latlng: e.latlng,
-          image: this.imageURL,
-        }
-        this.markers = [...this.markers, marker ];
-        this.image = null
+          image: this.imageURL
+        };
+        this.markers = [...this.markers, marker];
+        this.image = null;
         this.clickable = false;
       }
     }
@@ -95,5 +81,13 @@ export default {
   bottom: 50px;
   right: 5%;
   z-index: 50;
+}
+
+.image-dialog {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  z-index: 500;
+  transform: translate(-50%, -50%);
 }
 </style>
