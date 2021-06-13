@@ -3,9 +3,12 @@
     <v-btn fab class="floating-button" @click="dialog.addImage = true">
       <v-icon>mdi-plus</v-icon>
     </v-btn>
-    <v-card class="image-dialog" v-show="dialog.addImage" fullscreen>
-      <v-card-text height="100%">
-        <img-canvas :width="canvasWidth" :height="canvasHeight" />
+    <v-card class="image-dialog" width="90%" v-show="dialog.addImage">
+      <v-card-text>
+        <img-canvas
+          :imageTrigger="image.trigger"
+          @change="image.svg = $event"
+        />
       </v-card-text>
       <v-divider />
       <v-card-actions>
@@ -14,7 +17,7 @@
         <v-btn text @click="cancelAddMarker">Cancel</v-btn>
       </v-card-actions>
     </v-card>
-    <main-map :markers="markers" @click="mapClick($event)" />
+    <main-map @click="mapClick($event)" />
     <v-snackbar v-model="clickable" timeout="-1" dark>
       <p class="text-center font-weight-bold">
         Click to add marker
@@ -24,6 +27,7 @@
 </template>
 
 <script>
+import Marker from "@/models/Marker";
 export default {
   name: "MapView",
   components: {
@@ -37,17 +41,12 @@ export default {
         addImage: false,
         buttons: false
       },
-      markers: [],
-      clickable: false
+      clickable: false,
+      image: {
+        trigger: false,
+        svg: null
+      }
     };
-  },
-  computed: {
-    canvasWidth() {
-      return window.innerWidth - 50;
-    },
-    canvasHeight() {
-      return window.innerHeight - 200;
-    }
   },
   methods: {
     keydown(e) {
@@ -57,6 +56,7 @@ export default {
       this.dialog.addImage = false;
     },
     addMarker() {
+      this.image.trigger = true;
       this.clickable = true;
       this.dialog.addImage = false;
     },
@@ -64,10 +64,10 @@ export default {
       if (this.clickable) {
         const marker = {
           latlng: e.latlng,
-          image: this.imageURL
+          image: this.image.svg
         };
-        this.markers = [...this.markers, marker];
-        this.image = null;
+        Marker.insert({ data: marker });
+        this.image = { trigger: false, svg: null };
         this.clickable = false;
       }
     }

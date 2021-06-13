@@ -1,6 +1,6 @@
 <template>
   <v-row>
-    <v-toolbar>
+    <v-toolbar width="100%">
       <v-btn icon @click="addText">
         <v-icon>mdi-message-text-outline</v-icon>
       </v-btn>
@@ -9,8 +9,14 @@
         accept="image/*"
         capture="camera"
         hide-input
+        prepend-icon="mdi-image-outline"
+        style="max-width: 24px;"
         @change="addImage"
       />
+
+      <v-btn icon @click="clear">
+        <v-icon>mdi-delete-outline</v-icon>
+      </v-btn>
       <v-spacer />
 
       <color-picker
@@ -54,7 +60,14 @@
         >
       </v-list>
     </v-menu>
-    <canvas ref="can" v-bind="$attrs"></canvas>
+    <v-row justify="center" class="ma-5 fill-height">
+      <canvas
+        ref="can"
+        height="400px"
+        width="400px"
+        style="border: 1px solid black;"
+      ></canvas>
+    </v-row>
   </v-row>
 </template>
 
@@ -64,6 +77,14 @@ import ColorPicker from "./ColorPicker.vue";
 
 export default {
   components: { ColorPicker },
+  props: {
+    // trigger this.rasterizeSVG() change emit
+    imageTrigger: {
+      type: Boolean,
+      required: false,
+      default: false
+    }
+  },
   data() {
     return {
       canvas: null,
@@ -118,7 +139,14 @@ export default {
     currentObjectType() {
       if (!this.currentObject) return "";
       return this.currentObject.type;
-    },
+    }
+  },
+  watch: {
+    imageTrigger(val) {
+      if (val) {
+        this.$emit("change", this.rasterizeSVG());
+      }
+    }
   },
   methods: {
     setAttr(attr, val) {
@@ -136,6 +164,14 @@ export default {
       fabric.Image.fromURL(URL.createObjectURL(file), img => {
         this.canvas.add(img);
       });
+    },
+    clear() {
+      this.canvas.clear();
+    },
+    rasterizeSVG() {
+      return (
+        "data:image/svg+xml;utf8," + encodeURIComponent(this.canvas.toSVG())
+      );
     }
   }
 };

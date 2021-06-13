@@ -13,7 +13,7 @@
         :lat-lng="marker.latlng"
       >
         <l-popup v-if="marker.image">
-          <v-img :src="marker.image" />
+          <v-img width="30vw" :src="marker.image" />
         </l-popup>
       </l-marker>
     </l-map>
@@ -21,6 +21,7 @@
 </template>
 
 <script>
+import Marker from "@/models/Marker"
 import { LMap, LTileLayer, LMarker, LPopup } from "vue2-leaflet";
 import L from "leaflet";
 
@@ -32,13 +33,6 @@ export default {
     LMarker,
     LPopup,
   },
-  props: {
-    markers: {
-      type: Array,
-      required: false,
-      default: () => []
-    },
-  },
   data() {
     return {
       zoom: 13,
@@ -46,6 +40,11 @@ export default {
       attribution:
         '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
     };
+  },
+  computed: {
+    markers () {
+      return Marker.all()
+    }
   },
   mounted() {
     this.$nextTick(() => {
@@ -60,8 +59,6 @@ export default {
 
       L.marker(e.latlng)
         .addTo(this.$refs.map.mapObject)
-        .bindPopup("You are within " + radius + " meters from this point")
-        .openPopup();
 
       L.circle(e.latlng, radius).addTo(this.$refs.map.mapObject);
     },
