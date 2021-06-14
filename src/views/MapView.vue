@@ -1,6 +1,12 @@
 <template>
   <div class="text-center">
-    <v-btn fab class="floating-button" @click="dialog.addImage = true">
+    <google-sign-in-button class="floating-button" style="right: 5%; top: 50px;" />
+    <v-btn
+      fab
+      class="floating-button"
+      style="right: 5%; bottom: 50px;"
+      @click="dialog.addImage = true"
+    >
       <v-icon>mdi-plus</v-icon>
     </v-btn>
     <v-card class="image-dialog" width="90%" v-show="dialog.addImage">
@@ -32,7 +38,8 @@ export default {
   name: "MapView",
   components: {
     MainMap: () => import("@/components/MainMap"),
-    ImgCanvas: () => import("@/components/ImgCanvas")
+    ImgCanvas: () => import("@/components/ImgCanvas"),
+    GoogleSignInButton: () => import("@/components/GoogleSignInButton")
   },
   data() {
     return {
@@ -78,8 +85,6 @@ export default {
 <style scoped>
 .floating-button {
   position: absolute;
-  bottom: 50px;
-  right: 5%;
   z-index: 50;
 }
 
