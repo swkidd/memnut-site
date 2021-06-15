@@ -46,7 +46,6 @@ export default {
   },
   updated() {
     Marker.fetch();
-    console.log(Marker.all())
   },
   data() {
     return {
@@ -80,6 +79,7 @@ export default {
           latlng: e.latlng,
           image: this.image.svg
         };
+        console.log("marker", marker)
         Marker.put({ data: marker });
         this.image = { trigger: false, svg: null };
         this.clickable = false;

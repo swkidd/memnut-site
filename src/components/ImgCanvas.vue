@@ -174,12 +174,15 @@ export default {
     addText() {
       var textbox = new fabric.Textbox("Text goes here...", {
         textAlign: "center",
-        width: 400
+        width: 200,
+        fontSize: 16
       });
       this.canvas.add(textbox);
     },
     addImage(file) {
       fabric.Image.fromURL(URL.createObjectURL(file), img => {
+        img.scaleToWidth(50);
+        img.scaleToHeight(50);
         this.canvas.add(img);
       });
     },
