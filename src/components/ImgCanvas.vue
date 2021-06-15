@@ -63,8 +63,8 @@
     <v-row justify="center" class="ma-5 fill-height">
       <canvas
         ref="can"
-        height="400px"
-        width="400px"
+        :height="getHeight"
+        :width="getWidth"
         style="border: 1px solid black;"
       ></canvas>
     </v-row>
@@ -89,6 +89,8 @@ export default {
     return {
       canvas: null,
       currentObject: null,
+      canvasWidth: 0,
+      canvasHeight: 0,
       color: {
         background: "#FFFFFF",
         text: "#000000"
@@ -99,6 +101,8 @@ export default {
   mounted() {
     const ref = this.$refs.can;
     const canvas = new fabric.Canvas(ref, {
+      width: this.canvasWidth,
+      height: this.canvasHeight,
       fireRightClick: true,
       stopContextMenu: true
     });
@@ -136,6 +140,20 @@ export default {
     this.canvas = canvas;
   },
   computed: {
+    getWidth() {
+      if (this.$vuetify.breakpoint.mobile) {
+        return 200;
+      } else {
+        return 300;
+      }
+    },
+    getHeight() {
+      if (this.$vuetify.breakpoint.mobile) {
+        return 200;
+      } else {
+        return 300;
+      }
+    },
     currentObjectType() {
       if (!this.currentObject) return "";
       return this.currentObject.type;

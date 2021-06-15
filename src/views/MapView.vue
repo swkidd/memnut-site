@@ -1,6 +1,9 @@
 <template>
   <div class="text-center">
-    <google-sign-in-button class="floating-button" style="right: 5%; top: 50px;" />
+    <google-sign-in-button
+      class="floating-button"
+      style="right: 10px; top: 10px;"
+    />
     <v-btn
       fab
       class="floating-button"
@@ -41,6 +44,10 @@ export default {
     ImgCanvas: () => import("@/components/ImgCanvas"),
     GoogleSignInButton: () => import("@/components/GoogleSignInButton")
   },
+  updated() {
+    Marker.fetch();
+    console.log(Marker.all())
+  },
   data() {
     return {
       model: true,
@@ -73,7 +80,7 @@ export default {
           latlng: e.latlng,
           image: this.image.svg
         };
-        Marker.insert({ data: marker });
+        Marker.put({ data: marker });
         this.image = { trigger: false, svg: null };
         this.clickable = false;
       }

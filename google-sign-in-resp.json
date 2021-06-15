@@ -1,0 +1,59 @@
+{
+  "version": "2.0",
+  "routeKey": "GET /markers",
+  "rawPath": "/markers",
+  "rawQueryString": "",
+  "headers": {
+    "accept": "*/*",
+    "authorization": "eyJhbGciOiJSUzI1NiIsImtpZCI6IjZhMWQyNmQ5OTJiZTdhNGI2ODliZGNlMTkxMWY0ZTlhZGM3NWQ5ZjEiLCJ0eXAiOiJKV1QifQ.eyJpc3MiOiJhY2NvdW50cy5nb29nbGUuY29tIiwiYXpwIjoiMzUyNzM3OTI5MDg2LXRqcnNpM3M2MjA4YmVsYWRrcDhkbDczZWQzdWNyNW41LmFwcHMuZ29vZ2xldXNlcmNvbnRlbnQuY29tIiwiYXVkIjoiMzUyNzM3OTI5MDg2LXRqcnNpM3M2MjA4YmVsYWRrcDhkbDczZWQzdWNyNW41LmFwcHMuZ29vZ2xldXNlcmNvbnRlbnQuY29tIiwic3ViIjoiMTAwODc1Njk5Mzg2MzMyOTQ0MzM0IiwiZW1haWwiOiJraWRkc29mdHdhcmVAZ21haWwuY29tIiwiZW1haWxfdmVyaWZpZWQiOnRydWUsImF0X2hhc2giOiJTclg4US1zQ1JPWXRSRjZxSnk2VURnIiwibmFtZSI6IlN0ZXZlbiBLaWRkIiwicGljdHVyZSI6Imh0dHBzOi8vbGgzLmdvb2dsZXVzZXJjb250ZW50LmNvbS9hL0FBVFhBSndlSktKVlNMTV9ZbEZFOUdydFJYUUg4dHRHQ1pySHNIeHFFQUNEPXM5Ni1jIiwiZ2l2ZW5fbmFtZSI6IlN0ZXZlbiIsImZhbWlseV9uYW1lIjoiS2lkZCIsImxvY2FsZSI6ImVuIiwiaWF0IjoxNjIzNjQwMDg3LCJleHAiOjE2MjM2NDM2ODcsImp0aSI6IjhjMjkwOTI2MTMwYTQxYjlmNjhlNjYyZGViYTljZmQ1NGI4MjhmMDQifQ.AvLtOGcR5K-Ftggj9E-xgO1FAczy44jjzscglTScnA0yVHiAU_T-T7fEG1rlsZeeQxI5xX-VWJjaaZWwIv5sYl8WBp9sl_G_xI8UP_XUdqrsVVBbNO4i9GldyzUHK7ZxhCQpPiJ0NObuw3RTqDWHJLtb8-3zA0-uOFV79AQwg98EGe1mxy2uF9Wedbe74j8kYoFTCPfJmbMUJIJ9llHE_2zE94mgNtPh5l7h_hBmck9g8eldqjXNY4HSQTEuk_RqnnYpIj4MnanIYP6SZ7QRd82CUK3Fh-kqG6zgvQqH1KVhXVm9BWopM7uLqcgn6lMLH4GqPxFJmjpckF3nyiO-lw",
+    "content-length": "0",
+    "content-type": "application/json",
+    "host": "v5g7mgbgs6.execute-api.ap-northeast-1.amazonaws.com",
+    "user-agent": "curl/7.68.0",
+    "x-amzn-trace-id": "Root=1-60c6d3a4-2dd1580122cee57f4ff23aab",
+    "x-forwarded-for": "114.158.87.105",
+    "x-forwarded-port": "443",
+    "x-forwarded-proto": "https"
+  },
+  "requestContext": {
+    "accountId": "050901368311",
+    "apiId": "v5g7mgbgs6",
+    "authorizer": {
+      "jwt": {
+        "claims": {
+          "at_hash": "SrX8Q-sCROYtRF6qJy6UDg",
+          "aud": "352737929086-tjrsi3s6208beladkp8dl73ed3ucr5n5.apps.googleusercontent.com",
+          "azp": "352737929086-tjrsi3s6208beladkp8dl73ed3ucr5n5.apps.googleusercontent.com",
+          "email": "kiddsoftware@gmail.com",
+          "email_verified": "true",
+          "exp": "1623643687",
+          "family_name": "Kidd",
+          "given_name": "Steven",
+          "iat": "1623640087",
+          "iss": "accounts.google.com",
+          "jti": "8c290926130a41b9f68e662deba9cfd54b828f04",
+          "locale": "en",
+          "name": "Steven Kidd",
+          "picture": "https://lh3.googleusercontent.com/a/AATXAJweJKJVSLM_YlFE9GrtRXQH8ttGCZrHsHxqEACD=s96-c",
+          "sub": "100875699386332944334"
+        },
+        "scopes": null
+      }
+    },
+    "domainName": "v5g7mgbgs6.execute-api.ap-northeast-1.amazonaws.com",
+    "domainPrefix": "v5g7mgbgs6",
+    "http": {
+      "method": "GET",
+      "path": "/markers",
+      "protocol": "HTTP/1.1",
+      "sourceIp": "114.158.87.105",
+      "userAgent": "curl/7.68.0"
+    },
+    "requestId": "A5YBygextjMEKpQ=",
+    "routeKey": "GET /markers",
+    "stage": "$default",
+    "time": "14/Jun/2021:03:57:24 +0000",
+    "timeEpoch": 1623643044878
+  },
+  "isBase64Encoded": false
+}

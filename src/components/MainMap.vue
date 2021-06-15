@@ -21,7 +21,7 @@
 </template>
 
 <script>
-import Marker from "@/models/Marker"
+import Marker from "@/models/Marker";
 import { LMap, LTileLayer, LMarker, LPopup } from "vue2-leaflet";
 import L from "leaflet";
 
@@ -31,7 +31,7 @@ export default {
     LMap,
     LTileLayer,
     LMarker,
-    LPopup,
+    LPopup
   },
   data() {
     return {
@@ -42,8 +42,8 @@ export default {
     };
   },
   computed: {
-    markers () {
-      return Marker.all()
+    markers() {
+      return Marker.all();
     }
   },
   mounted() {
@@ -57,8 +57,7 @@ export default {
     onLocationFound(e) {
       var radius = e.accuracy;
 
-      L.marker(e.latlng)
-        .addTo(this.$refs.map.mapObject)
+      L.marker(e.latlng).addTo(this.$refs.map.mapObject);
 
       L.circle(e.latlng, radius).addTo(this.$refs.map.mapObject);
     },
@@ -66,7 +65,7 @@ export default {
       alert(e.message);
     },
     mapClick(e) {
-      this.$emit('click', e)
+      this.$emit("click", e);
     }
   }
 };

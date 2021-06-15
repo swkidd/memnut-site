@@ -1,18 +1,53 @@
 // User Model
 
-import { Model } from '@vuex-orm/core'
+import { Model } from "@vuex-orm/core";
 
 export default class Marker extends Model {
   // This is the name used as module name of the Vuex Store.
-  static entity = 'markers'
+  static entity = "markers";
 
   // List of all fields (schema) of the post model. `this.attr` is used
   // for the generic field type. The argument is the default value.
-  static fields () {
+  static fields() {
     return {
       id: this.attr(null),
       latlng: this.attr(null),
-      image: this.attr(null),
+      image: this.attr(null)
+    };
+  }
+
+  static fetch() {
+    const accessToken = localStorage.getItem("access_token");
+    if (accessToken) {
+      fetch(
+        "https://v5g7mgbgs6.execute-api.ap-northeast-1.amazonaws.com/api/markers",
+        {
+          headers: new Headers({
+            "Authorization": accessToken,
+            "Content-Type": "application/x-www-form-urlencoded"
+          })
+        }
+      )
+        .then(response => response.json())
+        .then(resp => resp.Items.forEach(data => Marker.insert({ data })));
+    }
+  }
+  
+  static put(data) {
+    const accessToken = localStorage.getItem("access_token");
+    if (accessToken) {
+      fetch(
+        "https://v5g7mgbgs6.execute-api.ap-northeast-1.amazonaws.com/api/markers",
+        {
+          method: "PUT",
+          headers: new Headers({
+            "Authorization": accessToken,
+            "Content-Type": "application/x-www-form-urlencoded"
+          }),
+          body: JSON.stringify(data)
+        }
+      )
+      Marker.insert({ data })
     }
   }
 }
