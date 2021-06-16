@@ -25,6 +25,12 @@
     />
   </head>
   <body>
+    <script>
+      // refresh page on back button
+      window.onpopstate = function() {
+        location.reload();
+      };
+    </script>
     <noscript>
       <strong
         >We're sorry but <%= htmlWebpackPlugin.options.title %> doesn't work
@@ -34,10 +40,6 @@
     </noscript>
     <div id="app"></div>
     <!-- built files will be auto injected -->
-    <script
-      src="https://apis.google.com/js/platform.js"
-      async
-      defer
-    ></script>
+    <script src="https://apis.google.com/js/platform.js" async defer></script>
   </body>
 </html>

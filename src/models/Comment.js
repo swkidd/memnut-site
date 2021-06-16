@@ -8,6 +8,8 @@ export default class Comment extends Model {
   static fields() {
     return {
       id: this.attr(null),
+      markerId: this.attr(null),
+      creator: this.attr(null),
       links: this.attr(null),
       text: this.attr(null),
     };
@@ -26,7 +28,7 @@ export default class Comment extends Model {
         }
       )
         .then(response => response.json())
-        .then(data =>  Comment.insert({ data }));
+        .then(resp =>  resp.Items.forEach(data => Comment.insert({ data })));
     }
   }
 

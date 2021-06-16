@@ -46,7 +46,7 @@ export default class Marker extends Model {
         }
       )
         .then(response => response.json())
-        .then(data =>  Marker.insert({ data }));
+        .then(resp =>  Marker.insert({ data: resp.Item }));
     }
   }
 

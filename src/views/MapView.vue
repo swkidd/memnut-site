@@ -7,12 +7,16 @@
     <v-btn
       fab
       class="floating-button"
-      style="right: 10px; bottom: 5%;"
+      :style="floatingButtonStyle"
       @click="dialog.addImage = true"
     >
       <v-icon>mdi-plus</v-icon>
     </v-btn>
-    <v-card :width="cardWidth" class="pa-5 image-dialog" v-show="dialog.addImage">
+    <v-card
+      :width="cardWidth"
+      class="pa-5 image-dialog"
+      v-show="dialog.addImage"
+    >
       <v-card-text>
         <img-canvas
           :imageTrigger="image.trigger"
@@ -44,12 +48,10 @@ export default {
     ImgCanvas: () => import("@/components/ImgCanvas"),
     GoogleSignInButton: () => import("@/components/GoogleSignInButton")
   },
-  mounted() {
-    Marker.fetch()
-  },
   data() {
     return {
       model: true,
+      carosel: 0,
       dialog: {
         addImage: false,
         buttons: false
@@ -62,13 +64,19 @@ export default {
     };
   },
   computed: {
-    cardWidth () {
+    floatingButtonStyle() {
+      return {
+        right: "10px",
+        bottom: this.$vuetify.breakpoint.mobile ? "50px" : "10px"
+      };
+    },
+    cardWidth() {
       if (this.$vuetify.breakpoint.mobile) {
         return 300;
       } else {
         return 400;
       }
-    }
+    },
   },
   methods: {
     keydown(e) {
