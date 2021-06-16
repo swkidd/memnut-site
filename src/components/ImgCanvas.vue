@@ -21,14 +21,12 @@
 
       <color-picker
         v-if="currentObjectType === 'textbox'"
-        class="mx-3"
         :color="color.background"
         icon="mdi-format-color-fill"
         @change="setAttr('backgroundColor', $event)"
       />
       <color-picker
         v-if="currentObjectType === 'textbox'"
-        class="mx-3"
         :color="color.text"
         icon="mdi-format-color-text"
         @change="setAttr('fill', $event)"
@@ -78,7 +76,6 @@ import ColorPicker from "./ColorPicker.vue";
 export default {
   components: { ColorPicker },
   props: {
-    // trigger this.rasterizeSVG() change emit
     imageTrigger: {
       type: Boolean,
       required: false,
@@ -162,7 +159,9 @@ export default {
   watch: {
     imageTrigger(val) {
       if (val) {
-        this.$emit("change", this.rasterizeSVG());
+        this.$emit("change", this.canvas.toDataURL({
+          format: 'png',
+        }));
       }
     }
   },
@@ -181,19 +180,13 @@ export default {
     },
     addImage(file) {
       fabric.Image.fromURL(URL.createObjectURL(file), img => {
-        img.scaleToWidth(50);
-        img.scaleToHeight(50);
+        img.scaleToWidth(100);
         this.canvas.add(img);
       });
     },
     clear() {
       this.canvas.clear();
     },
-    rasterizeSVG() {
-      return (
-        "data:image/svg+xml;utf8," + encodeURIComponent(this.canvas.toSVG())
-      );
-    }
   }
 };
 </script>

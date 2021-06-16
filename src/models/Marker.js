@@ -17,14 +17,14 @@ export default class Marker extends Model {
   }
 
   static fetch() {
-    const accessToken = localStorage.getItem("access_token");
+    const accessToken = sessionStorage.getItem("access_token");
     if (accessToken) {
       fetch(
         "https://v5g7mgbgs6.execute-api.ap-northeast-1.amazonaws.com/api/markers",
         {
           headers: new Headers({
             "Authorization": accessToken,
-            "Content-Type": "application/x-www-form-urlencoded"
+            "Content-Type": "application/json"
           })
         }
       )
@@ -32,9 +32,26 @@ export default class Marker extends Model {
         .then(resp => resp.Items.forEach(data => Marker.insert({ data })));
     }
   }
-  
+
+  static fetchById(id) {
+    const accessToken = sessionStorage.getItem("access_token");
+    if (accessToken) {
+      fetch(
+        `https://v5g7mgbgs6.execute-api.ap-northeast-1.amazonaws.com/api/markers/${id}`,
+        {
+          headers: new Headers({
+            "Authorization": accessToken,
+            "Content-Type": "application/json"
+          })
+        }
+      )
+        .then(response => response.json())
+        .then(data =>  Marker.insert({ data }));
+    }
+  }
+
   static put(data) {
-    const accessToken = localStorage.getItem("access_token");
+    const accessToken = sessionStorage.getItem("access_token");
     if (accessToken) {
       fetch(
         "https://v5g7mgbgs6.execute-api.ap-northeast-1.amazonaws.com/api/markers",
@@ -42,12 +59,13 @@ export default class Marker extends Model {
           method: "PUT",
           headers: new Headers({
             "Authorization": accessToken,
-            "Content-Type": "application/x-www-form-urlencoded"
+            "Content-Type": "application/json"
           }),
           body: JSON.stringify(data)
         }
       )
-      Marker.insert({ data })
+        .then(response => response.json())
+        .then(data =>  Marker.insert({ data }));
     }
   }
 }

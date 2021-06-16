@@ -13,7 +13,9 @@
         :lat-lng="marker.latlng"
       >
         <l-popup v-if="marker.image">
-          <v-img width="30vw" :src="marker.image" />
+          <div style="cursor: pointer;" @click="$router.push({ name: 'marker-detail', params: { id: marker.id } })">
+            <v-img width="200" :src="marker.image" />
+          </div>
         </l-popup>
       </l-marker>
     </l-map>

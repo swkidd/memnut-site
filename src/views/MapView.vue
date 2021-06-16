@@ -7,16 +7,16 @@
     <v-btn
       fab
       class="floating-button"
-      style="right: 5%; bottom: 50px;"
+      style="right: 10px; bottom: 5%;"
       @click="dialog.addImage = true"
     >
       <v-icon>mdi-plus</v-icon>
     </v-btn>
-    <v-card class="image-dialog" width="90%" v-show="dialog.addImage">
+    <v-card :width="cardWidth" class="pa-5 image-dialog" v-show="dialog.addImage">
       <v-card-text>
         <img-canvas
           :imageTrigger="image.trigger"
-          @change="image.svg = $event"
+          @change="image.jpeg = $event"
         />
       </v-card-text>
       <v-divider />
@@ -44,8 +44,8 @@ export default {
     ImgCanvas: () => import("@/components/ImgCanvas"),
     GoogleSignInButton: () => import("@/components/GoogleSignInButton")
   },
-  updated() {
-    Marker.fetch();
+  mounted() {
+    Marker.fetch()
   },
   data() {
     return {
@@ -57,9 +57,18 @@ export default {
       clickable: false,
       image: {
         trigger: false,
-        svg: null
+        jpeg: null
       }
     };
+  },
+  computed: {
+    cardWidth () {
+      if (this.$vuetify.breakpoint.mobile) {
+        return 300;
+      } else {
+        return 400;
+      }
+    }
   },
   methods: {
     keydown(e) {
@@ -77,11 +86,10 @@ export default {
       if (this.clickable) {
         const marker = {
           latlng: e.latlng,
-          image: this.image.svg
+          image: this.image.jpeg
         };
-        console.log("marker", marker)
-        Marker.put({ data: marker });
-        this.image = { trigger: false, svg: null };
+        Marker.put(marker);
+        this.image = { trigger: false, jpeg: null };
         this.clickable = false;
       }
     }

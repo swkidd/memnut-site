@@ -15,7 +15,7 @@ export default {
         onsuccess: this.onSuccess,
         onfailure: this.onFailure
       });
-    }, 1000);
+    }, 2000);
   },
   methods: {
     onSuccess(googleUser) {
@@ -30,7 +30,7 @@ export default {
       GoogleUser.insert({ data: user });
 
       const id_token = googleUser.getAuthResponse().id_token;
-      localStorage.setItem("access_token", id_token);
+      sessionStorage.setItem("access_token", id_token);
 
       // fetch data on login
       Marker.fetch()
