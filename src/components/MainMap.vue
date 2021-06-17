@@ -35,7 +35,7 @@
         v-for="(marker, i) in markers"
         :key="i"
         style="cursor: pointer"
-        @click="center = marker.latlng"
+        @click="center = marker.latlng; zoom = 24"
       >
         <v-img :src="marker.image" width="75" class="ma-3" />
       </v-sheet>
@@ -56,14 +56,29 @@ export default {
     LMarker,
     LPopup
   },
+  props: {
+    following: {
+      type: Boolean,
+      required: false,
+      default: false
+    }
+  },
   data() {
     return {
       center: [35.77, 139.3],
       zoom: 13,
+      isFollowing: false,
       url: "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
       attribution:
         '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
     };
+  },
+  watch: {
+    following (val) {
+      if (val && !this.isFollowing) {
+        this.initFollow()
+      }
+    }
   },
   mounted() {
     Marker.fetch();
@@ -87,12 +102,13 @@ export default {
     }
   },
   methods: {
-    follow() {
+    initFollow() {
       this.$nextTick(() => {
         this.$refs.map.mapObject.on("locationfound", this.onLocationFound);
         this.$refs.map.mapObject.on("locationerror", this.onLocationError);
         this.$refs.map.mapObject.locate({ setView: true });
       });
+      this.isFollowing = true
     },
     onLocationFound(e) {
       var radius = e.accuracy;

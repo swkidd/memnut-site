@@ -8,7 +8,7 @@
       fab
       class="floating-button"
       :style="locationButtonStyle"
-      @click="dialog.addImage = true"
+      @click="following = true"
     >
       <v-icon>mdi-map-marker-outline</v-icon>
     </v-btn>
@@ -38,7 +38,7 @@
         <v-btn text @click="cancelAddMarker">Cancel</v-btn>
       </v-card-actions>
     </v-card>
-    <main-map @click="mapClick($event)" />
+    <main-map :following="following" @click="mapClick($event)" />
     <v-snackbar v-model="clickable" timeout="-1" dark>
       <p class="text-center font-weight-bold">
         Click to add marker
@@ -60,6 +60,7 @@ export default {
     return {
       model: true,
       carosel: 0,
+      following: false,
       dialog: {
         addImage: false,
         buttons: false
