@@ -26,10 +26,10 @@
         </l-popup>
       </l-marker>
     </l-map>
-    <v-row
+    <v-card
       justify="start"
-      class="flex-row rounded"
-      style="max-width: 420px; position: fixed; bottom: 10px; left: 50%; transform: translateX(-50%); overflow-x: scroll;"
+      class="d-flex flex-row marker-image"
+      :style="scrollStyles"
     >
       <v-sheet
         v-for="(marker, i) in markers"
@@ -39,7 +39,7 @@
       >
         <v-img :src="marker.image" width="75" class="ma-3" />
       </v-sheet>
-    </v-row>
+    </v-card>
   </div>
 </template>
 
@@ -58,7 +58,7 @@ export default {
   },
   data() {
     return {
-      center: [35.77, 139.30],
+      center: [35.77, 139.3],
       zoom: 13,
       url: "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
       attribution:
@@ -69,6 +69,18 @@ export default {
     Marker.fetch();
   },
   computed: {
+    scrollStyles() {
+      return this.$vuetify.breakpoint.mobile
+        ? {
+            maxWidth: "225px",
+            left: "10px"
+          }
+        : {
+            maxWidth: "500px",
+            left: "50%",
+            transform: "translateX(-50%)"
+          };
+    },
     markers() {
       console.log(Marker.all());
       return Marker.all();
@@ -98,3 +110,11 @@ export default {
   }
 };
 </script>
+<style scoped>
+.marker-image {
+  position: fixed;
+  bottom: 20px;
+  overflow-x: auto;
+  overflow-y: none;
+}
+</style>

@@ -7,6 +7,14 @@
     <v-btn
       fab
       class="floating-button"
+      :style="locationButtonStyle"
+      @click="dialog.addImage = true"
+    >
+      <v-icon>mdi-map-marker-outline</v-icon>
+    </v-btn>
+    <v-btn
+      fab
+      class="floating-button"
       :style="floatingButtonStyle"
       @click="dialog.addImage = true"
     >
@@ -64,6 +72,12 @@ export default {
     };
   },
   computed: {
+    locationButtonStyle() {
+      return {
+        right: "10px",
+        bottom: this.$vuetify.breakpoint.mobile ? "120px" : "70px"
+      };
+    },
     floatingButtonStyle() {
       return {
         right: "10px",
