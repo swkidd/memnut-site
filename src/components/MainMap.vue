@@ -9,6 +9,7 @@
     >
       <l-tile-layer :url="url" :attribution="attribution" />
       <l-marker
+        :ref="`marker${marker.id}`" 
         v-for="(marker, i) in markers.filter(m => m.latlng)"
         :key="i"
         style="user-select: none;"
@@ -35,7 +36,7 @@
         v-for="(marker, i) in markers"
         :key="i"
         style="cursor: pointer"
-        @click="center = marker.latlng; zoom = 24"
+        @click="markerImageClick(marker)"
       >
         <v-img :src="marker.image" width="75" class="ma-3" />
       </v-sheet>
@@ -97,11 +98,17 @@ export default {
           };
     },
     markers() {
-      console.log(Marker.all());
       return Marker.all();
     }
   },
   methods: {
+    markerImageClick(marker) {
+      this.center = { ...marker.latlng, lat: marker.latlng.lat + 0.0005 }
+      this.zoom = 24;
+      if (this.$refs[`marker${marker.id}`].length) {
+        this.$refs[`marker${marker.id}`][0].mapObject.openPopup()
+      }
+    },
     initFollow() {
       this.$nextTick(() => {
         this.$refs.map.mapObject.on("locationfound", this.onLocationFound);

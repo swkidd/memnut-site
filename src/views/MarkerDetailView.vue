@@ -26,7 +26,7 @@
       </v-card>
     </v-dialog>
     <v-row justify="space-around">
-      <v-col style="max-width: 500px;" class="ma-15 d-flex justify-center">
+      <v-col style="max-width: 90%;" class="ma-15 d-flex justify-center">
         <v-img class="ma-5" :src="marker.image" />
       </v-col>
     </v-row>

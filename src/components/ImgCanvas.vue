@@ -7,7 +7,6 @@
 
       <v-file-input
         accept="image/*"
-        capture="camera"
         hide-input
         prepend-icon="mdi-image-outline"
         style="max-width: 24px;"
@@ -58,7 +57,7 @@
         >
       </v-list>
     </v-menu>
-    <v-row justify="center" class="ma-5 fill-height">
+    <v-row justify="center" class="my-5 fill-height">
       <canvas
         ref="can"
         :height="getHeight"
@@ -139,16 +138,16 @@ export default {
   computed: {
     getWidth() {
       if (this.$vuetify.breakpoint.mobile) {
-        return 200;
+        return window.innerWidth * 0.7;
       } else {
-        return 300;
+        return 500;
       }
     },
     getHeight() {
       if (this.$vuetify.breakpoint.mobile) {
-        return 200;
+        return window.innerHeight * 0.5
       } else {
-        return 300;
+        return 500;
       }
     },
     currentObjectType() {
@@ -174,13 +173,13 @@ export default {
       var textbox = new fabric.Textbox("Text goes here...", {
         textAlign: "center",
         width: 200,
-        fontSize: 16
+        fontSize: 24 
       });
       this.canvas.add(textbox);
     },
     addImage(file) {
       fabric.Image.fromURL(URL.createObjectURL(file), img => {
-        img.scaleToWidth(100);
+        img.scaleToWidth(this.getWidth);
         this.canvas.add(img);
       });
     },

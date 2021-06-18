@@ -19,6 +19,7 @@ export default class Marker extends Model {
   static fetch() {
     const accessToken = sessionStorage.getItem("access_token");
     if (accessToken) {
+      console.log(accessToken)
       fetch(
         "https://v5g7mgbgs6.execute-api.ap-northeast-1.amazonaws.com/api/markers",
         {
@@ -53,19 +54,23 @@ export default class Marker extends Model {
   static put(data) {
     const accessToken = sessionStorage.getItem("access_token");
     if (accessToken) {
+      let form = new FormData()
+      form.append("latlng", data.latlng)
+      form.append("image", data.image)
+
       fetch(
         "https://v5g7mgbgs6.execute-api.ap-northeast-1.amazonaws.com/api/markers",
         {
           method: "PUT",
           headers: new Headers({
             "Authorization": accessToken,
-            "Content-Type": "application/json"
           }),
-          body: JSON.stringify(data)
+          body: form
         }
       )
-        .then(response => response.json())
-        .then(data =>  Marker.insert({ data }));
+        .then(response => console.log(response))
+        // .then(response => response.json())
+        // .then(data =>  Marker.insert({ data }));
     }
   }
 }

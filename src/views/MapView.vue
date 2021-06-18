@@ -16,28 +16,18 @@
       fab
       class="floating-button"
       :style="floatingButtonStyle"
-      @click="dialog.addImage = true"
+      @click="showImageUpload"
     >
-      <v-icon>mdi-plus</v-icon>
+      <v-icon>mdi-image-outline</v-icon>
     </v-btn>
-    <v-card
-      :width="cardWidth"
-      class="pa-5 image-dialog"
-      v-show="dialog.addImage"
-    >
-      <v-card-text>
-        <img-canvas
-          :imageTrigger="image.trigger"
-          @change="image.jpeg = $event"
-        />
-      </v-card-text>
-      <v-divider />
-      <v-card-actions>
-        <v-spacer />
-        <v-btn text @click="addMarker">Add</v-btn>
-        <v-btn text @click="cancelAddMarker">Cancel</v-btn>
-      </v-card-actions>
-    </v-card>
+    <v-file-input
+      v-show="false"
+      ref="imageUpload"
+      accept="image/*"
+      hide-input
+      prepend-icon=""
+      @change="addImage"
+    />
     <main-map :following="following" @click="mapClick($event)" />
     <v-snackbar v-model="clickable" timeout="-1" dark>
       <p class="text-center font-weight-bold">
@@ -53,7 +43,6 @@ export default {
   name: "MapView",
   components: {
     MainMap: () => import("@/components/MainMap"),
-    ImgCanvas: () => import("@/components/ImgCanvas"),
     GoogleSignInButton: () => import("@/components/GoogleSignInButton")
   },
   data() {
@@ -62,7 +51,6 @@ export default {
       carosel: 0,
       following: false,
       dialog: {
-        addImage: false,
         buttons: false
       },
       clickable: false,
@@ -76,13 +64,13 @@ export default {
     locationButtonStyle() {
       return {
         right: "10px",
-        bottom: this.$vuetify.breakpoint.mobile ? "120px" : "70px"
+        bottom: this.$vuetify.breakpoint.mobile ? "130px" : "70px"
       };
     },
     floatingButtonStyle() {
       return {
         right: "10px",
-        bottom: this.$vuetify.breakpoint.mobile ? "50px" : "10px"
+        bottom: this.$vuetify.breakpoint.mobile ? "60px" : "10px"
       };
     },
     cardWidth() {
@@ -91,25 +79,27 @@ export default {
       } else {
         return 400;
       }
-    },
+    }
   },
   methods: {
+    showImageUpload() {
+      this.$refs.imageUpload.$refs.input.click()
+    },
+    addImage(file) {
+      this.image = file
+      this.clickable = true
+    },
     keydown(e) {
       this.$emit("keydown", e);
     },
     cancelAddMarker() {
       this.dialog.addImage = false;
     },
-    addMarker() {
-      this.image.trigger = true;
-      this.clickable = true;
-      this.dialog.addImage = false;
-    },
     mapClick(e) {
       if (this.clickable) {
         const marker = {
           latlng: e.latlng,
-          image: this.image.jpeg
+          image: this.image
         };
         Marker.put(marker);
         this.image = { trigger: false, jpeg: null };
@@ -124,13 +114,5 @@ export default {
 .floating-button {
   position: absolute;
   z-index: 50;
-}
-
-.image-dialog {
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  z-index: 500;
-  transform: translate(-50%, -50%);
 }
 </style>
