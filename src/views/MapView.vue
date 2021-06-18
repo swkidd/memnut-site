@@ -88,6 +88,7 @@ export default {
     addImage(file) {
       this.image = file
       this.clickable = true
+      Marker.uploadImage(file)
     },
     keydown(e) {
       this.$emit("keydown", e);

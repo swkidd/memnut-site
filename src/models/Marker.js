@@ -19,12 +19,12 @@ export default class Marker extends Model {
   static fetch() {
     const accessToken = sessionStorage.getItem("access_token");
     if (accessToken) {
-      console.log(accessToken)
+      console.log(accessToken);
       fetch(
         "https://v5g7mgbgs6.execute-api.ap-northeast-1.amazonaws.com/api/markers",
         {
           headers: new Headers({
-            "Authorization": accessToken,
+            Authorization: accessToken,
             "Content-Type": "application/json"
           })
         }
@@ -41,36 +41,63 @@ export default class Marker extends Model {
         `https://v5g7mgbgs6.execute-api.ap-northeast-1.amazonaws.com/api/markers/${id}`,
         {
           headers: new Headers({
-            "Authorization": accessToken,
+            Authorization: accessToken,
             "Content-Type": "application/json"
           })
         }
       )
         .then(response => response.json())
-        .then(resp =>  Marker.insert({ data: resp.Item }));
+        .then(resp => Marker.insert({ data: resp.Item }));
     }
   }
 
   static put(data) {
     const accessToken = sessionStorage.getItem("access_token");
     if (accessToken) {
-      let form = new FormData()
-      form.append("latlng", data.latlng)
-      form.append("image", data.image)
+      let form = new FormData();
+      form.append("latlng", data.latlng);
+      form.append("image", data.image);
 
       fetch(
         "https://v5g7mgbgs6.execute-api.ap-northeast-1.amazonaws.com/api/markers",
         {
           method: "PUT",
           headers: new Headers({
-            "Authorization": accessToken,
+            Authorization: accessToken
           }),
           body: form
         }
-      )
-        .then(response => console.log(response))
-        // .then(response => response.json())
-        // .then(data =>  Marker.insert({ data }));
+      ).then(response => console.log(response));
+      // .then(response => response.json())
+      // .then(data =>  Marker.insert({ data }));
     }
+  }
+
+  static async uploadImage(file) {
+    const accessToken = sessionStorage.getItem("access_token");
+    if (accessToken) {
+      let response = await fetch(
+        "https://v5g7mgbgs6.execute-api.ap-northeast-1.amazonaws.com/api/upload",
+        {
+          headers: new Headers({
+            Authorization: accessToken
+          })
+        }
+      );
+      let json = await response.json();
+
+      let form = new FormData();
+      Object.keys(json.data.fields).forEach(key =>
+        form.append(key, json.data.fields[key])
+      );
+      form.append("file", file);
+
+      response = await fetch(json.data.url, { method: "POST", body: form });
+      console.log(response)
+      if (!response.ok) return "Failed to upload via presigned POST";
+
+      return `File uploaded successfully`;
+    }
+    return "File upload failed";
   }
 }
