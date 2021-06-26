@@ -88,7 +88,6 @@ export default {
     addImage(file) {
       this.image = file
       this.clickable = true
-      Marker.uploadImage(file)
     },
     keydown(e) {
       this.$emit("keydown", e);
@@ -102,7 +101,7 @@ export default {
           latlng: e.latlng,
           image: this.image
         };
-        Marker.put(marker);
+        Marker.uploadMarker(marker)
         this.image = { trigger: false, jpeg: null };
         this.clickable = false;
       }

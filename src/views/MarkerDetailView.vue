@@ -27,7 +27,7 @@
     </v-dialog>
     <v-row justify="space-around">
       <v-col style="max-width: 90%;" class="ma-15 d-flex justify-center">
-        <v-img class="ma-5" :src="marker.image" />
+        <v-img max-width="500" class="ma-5" :src="marker.image" />
       </v-col>
     </v-row>
     <v-row justify="center" class="mb-5">
@@ -54,14 +54,13 @@ export default {
     id: {
       type: String,
       required: true
-    }
+    },
   },
   mounted() {
     if (!this.id) {
       this.id = this.$router.params.id;
     }
-
-    Marker.fetchById(this.id);
+    Marker.fetch()
     Comment.fetchById(this.id);
   },
   computed: {

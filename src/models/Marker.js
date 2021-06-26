@@ -30,7 +30,25 @@ export default class Marker extends Model {
         }
       )
         .then(response => response.json())
-        .then(resp => resp.Items.forEach(data => Marker.insert({ data })));
+        .then(resp => resp.Items.forEach(data => {
+          if (data.image_key) {
+            fetch(
+              "https://v5g7mgbgs6.execute-api.ap-northeast-1.amazonaws.com/api/download",
+              {
+                method: "POST",
+                headers: new Headers({
+                  Authorization: accessToken,
+                  "Content-Type": "application/json"
+                }),
+                body: JSON.stringify({ key: data.image_key })
+              }
+            ).then(response => response.json())
+            .then(urlData => {
+              data.image = urlData.data
+              Marker.insert({ data })
+            })
+          }
+        }))
     }
   }
 
@@ -73,15 +91,18 @@ export default class Marker extends Model {
     }
   }
 
-  static async uploadImage(file) {
+  static async uploadMarker(marker) {
     const accessToken = sessionStorage.getItem("access_token");
     if (accessToken) {
       let response = await fetch(
         "https://v5g7mgbgs6.execute-api.ap-northeast-1.amazonaws.com/api/upload",
         {
+          method: "POST",
           headers: new Headers({
-            Authorization: accessToken
-          })
+            Authorization: accessToken,
+            "Content-Type": "application/json"
+          }),
+          body: JSON.stringify({ latlng: marker.latlng })
         }
       );
       let json = await response.json();
@@ -90,11 +111,13 @@ export default class Marker extends Model {
       Object.keys(json.data.fields).forEach(key =>
         form.append(key, json.data.fields[key])
       );
-      form.append("file", file);
+      form.append("file", marker.image);
 
       response = await fetch(json.data.url, { method: "POST", body: form });
-      console.log(response)
       if (!response.ok) return "Failed to upload via presigned POST";
+
+      Marker.insert({ data: marker })
+      setTimeout(() => { Marker.deleteAll(); Marker.fetch() }, 2000)
 
       return `File uploaded successfully`;
     }
