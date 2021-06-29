@@ -1,5 +1,29 @@
 <template>
   <div>
+    <v-navigation-drawer v-model="navDrawer" absolute bottom hide-overlay>
+      <v-card
+        v-if="currentMarker"
+        class="mx-auto my-12"
+        max-width="374"
+        elevation="0"
+      >
+        <v-img height="250" class="ma-5" :src="currentMarker.image" />
+        <v-card-actions>
+          <v-spacer />
+          <v-btn
+            text
+            @click="
+              $router.push({
+                name: 'marker-detail',
+                params: { id: currentMarker.id }
+              })
+            "
+          >
+            View
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-navigation-drawer>
     <l-map
       ref="map"
       :center="center"
@@ -13,10 +37,14 @@
         v-for="(marker, i) in markers.filter(m => m.latlng)"
         :key="i"
         :lat-lng="marker.latlng"
+        @click="
+          currentMarker = marker;
+          navDrawer = true;
+        "
       >
-        <l-popup v-if="marker.image">
+        <!-- <l-popup v-if="marker.image">
           <v-card class="mx-auto my-12" max-width="374" elevation="0">
-            <v-img height="250" class="ma-5" :src="marker.image" />
+            <v-img height="150" class="ma-5" :src="marker.image" />
             <v-card-actions>
               <v-spacer />
               <v-btn
@@ -32,7 +60,7 @@
               </v-btn>
             </v-card-actions>
           </v-card>
-        </l-popup>
+        </l-popup> -->
       </l-marker>
     </l-map>
     <v-card
@@ -60,7 +88,7 @@
 
 <script>
 import Marker from "@/models/Marker";
-import { LMap, LTileLayer, LMarker, LPopup } from "vue2-leaflet";
+import { LMap, LTileLayer, LMarker } from "vue2-leaflet";
 import L from "leaflet";
 
 export default {
@@ -68,8 +96,7 @@ export default {
   components: {
     LMap,
     LTileLayer,
-    LMarker,
-    LPopup
+    LMarker
   },
   props: {
     following: {
@@ -82,6 +109,8 @@ export default {
     return {
       center: [35.77, 139.3],
       zoom: 13,
+      navDrawer: false,
+      currentMarker: null,
       isFollowing: false,
       url: "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
       attribution:
@@ -117,11 +146,15 @@ export default {
   },
   methods: {
     markerImageClick(marker) {
-      this.zoom = 24;
-      this.center = { lng: marker.latlng.lng, lat: marker.latlng.lat + 0.0005 };
+      this.center = { lng: marker.latlng.lng, lat: marker.latlng.lat };
       if (this.$refs[`marker${marker.id}`].length) {
         this.$refs[`marker${marker.id}`][0].mapObject.openPopup();
       }
+      setTimeout(() => {
+        this.zoom = 30;
+      }, 500);
+      this.currentMarker = marker;
+      this.navDrawer = true;
     },
     initFollow() {
       this.$nextTick(() => {
@@ -143,6 +176,7 @@ export default {
     },
     mapClick(e) {
       this.$emit("click", e);
+      this.navDrawer = false;
     }
   }
 };

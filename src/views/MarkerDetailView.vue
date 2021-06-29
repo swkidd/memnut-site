@@ -43,12 +43,7 @@
     </v-dialog>
     <v-row justify="center">
       <v-col cols="12" :md="hasComments ? 8 : 12">
-        <canvas
-          ref="can"
-          :width="canvasWidth"
-          :height="canvasHeight"
-          style="border: 1px solid black;"
-        ></canvas>
+        <canvas ref="can" :width="canvasWidth" :height="canvasHeight"></canvas>
       </v-col>
       <v-col cols="12" md="4" class="my-3">
         <v-card
@@ -59,7 +54,23 @@
           width="100%"
           @click="commentClick(comment)"
         >
-          <v-card-title v-text="comment.creator"></v-card-title>
+          <v-card-title>
+            <v-list-item>
+              <v-list-item-avatar color="grey darken-3">
+                <v-img
+                  class="elevation-6"
+                  :src="comment.creator.picture"
+                ></v-img>
+              </v-list-item-avatar>
+
+              <v-list-item-content>
+                <v-list-item-title
+                  class="text-left"
+                  v-text="comment.creator.first_name"
+                />
+              </v-list-item-content>
+            </v-list-item>
+          </v-card-title>
 
           <v-card-text>
             <div v-text="comment.front" />
@@ -102,6 +113,7 @@ export default {
         current: null
       },
       canvas: null,
+      url: null,
       imageAdded: false,
       front: "",
       back: "",
@@ -128,11 +140,19 @@ export default {
     marker() {
       return Marker.query()
         .where("id", this.id)
+        .with("creator")
         .first();
     },
     comments() {
+      console.log(
+        Comment.query()
+          .where("markerId", this.id)
+          .with("creator")
+          .get()
+      );
       return Comment.query()
         .where("markerId", this.id)
+        .with("creator")
         .get();
     },
     hasComments() {
@@ -143,6 +163,7 @@ export default {
     marker(val) {
       if (!this.imageAdded && val && val.image) {
         this.initCanvas(val.image);
+        this.url = val.image;
         this.imageAdded = true;
       }
     }
@@ -174,7 +195,6 @@ export default {
     },
     initCanvas(url) {
       fabric.Image.fromURL(url, img => {
-        this.img = img;
         const ref = this.$refs.can;
 
         this.canvasWidth = this.getWidth;
@@ -235,7 +255,7 @@ export default {
     createPolygon() {
       if (this.points.length < 3) return;
       this.points = [...this.points, fabric.util.object.clone(this.points[0])];
-      var poly = new fabric.Polyline(
+      var poly = new fabric.Polygon(
         this.points.map(point => point.getCenterPoint()),
         {
           stroke: "black",
@@ -251,6 +271,10 @@ export default {
     submit() {
       this.clearPolygons();
       this.createPolygon();
+      this.clearPoints();
+
+      if (this.polygons.length < 1) return;
+
       Comment.put({
         markerId: this.id,
         front: this.front,
@@ -258,16 +282,17 @@ export default {
         polygons: this.polygons,
         width: this.canvasWidth
       });
+
       this.clearPoints();
       this.clearPolygons();
       this.front = "";
       this.back = "";
       this.isCreatePoints = false;
-      setTimeout(() => {
-        if (this.comments.length === 1) {
+      if (this.comments.length === 1) {
+        setTimeout(() => {
           this.$router.go();
-        }
-      }, 1000);
+        }, 1000);
+      }
     },
     cancel() {
       this.clearPoints();
