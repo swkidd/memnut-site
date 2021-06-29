@@ -4,26 +4,34 @@
       ref="map"
       :center="center"
       :zoom="zoom"
-      style="height: 100vh; width: 100%; z-index: 0; user-select: none;"
+      style="height: 100vh; width: 100%; z-index: 0;"
       @click="mapClick"
     >
       <l-tile-layer :url="url" :attribution="attribution" />
       <l-marker
-        :ref="`marker${marker.id}`" 
+        :ref="`marker${marker.id}`"
         v-for="(marker, i) in markers.filter(m => m.latlng)"
         :key="i"
-        style="user-select: none;"
         :lat-lng="marker.latlng"
       >
         <l-popup v-if="marker.image">
-          <div
-            style="cursor: pointer;"
-            @click="
-              $router.push({ name: 'marker-detail', params: { id: marker.id } })
-            "
-          >
-            <v-img width="200" :src="marker.image" />
-          </div>
+          <v-card class="mx-auto my-12" max-width="374" elevation="0">
+            <v-img height="250" class="ma-5" :src="marker.image" />
+            <v-card-actions>
+              <v-spacer />
+              <v-btn
+                text
+                @click="
+                  $router.push({
+                    name: 'marker-detail',
+                    params: { id: marker.id }
+                  })
+                "
+              >
+                View
+              </v-btn>
+            </v-card-actions>
+          </v-card>
         </l-popup>
       </l-marker>
     </l-map>
@@ -38,7 +46,13 @@
         style="cursor: pointer"
         @click="markerImageClick(marker)"
       >
-        <v-img :src="marker.image" width="75" class="ma-3" />
+        <v-img
+          :contain="true"
+          :src="marker.image"
+          width="75"
+          aspect-ratio="1"
+          class="ma-3"
+        />
       </v-sheet>
     </v-card>
   </div>
@@ -75,9 +89,9 @@ export default {
     };
   },
   watch: {
-    following (val) {
+    following(val) {
       if (val && !this.isFollowing) {
-        this.initFollow()
+        this.initFollow();
       }
     }
   },
@@ -103,10 +117,10 @@ export default {
   },
   methods: {
     markerImageClick(marker) {
-      this.center = { ...marker.latlng, lat: marker.latlng.lat + 0.0005 }
       this.zoom = 24;
+      this.center = { lng: marker.latlng.lng, lat: marker.latlng.lat + 0.0005 };
       if (this.$refs[`marker${marker.id}`].length) {
-        this.$refs[`marker${marker.id}`][0].mapObject.openPopup()
+        this.$refs[`marker${marker.id}`][0].mapObject.openPopup();
       }
     },
     initFollow() {
@@ -115,7 +129,7 @@ export default {
         this.$refs.map.mapObject.on("locationerror", this.onLocationError);
         this.$refs.map.mapObject.locate({ setView: true });
       });
-      this.isFollowing = true
+      this.isFollowing = true;
     },
     onLocationFound(e) {
       var radius = e.accuracy;

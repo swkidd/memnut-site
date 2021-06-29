@@ -1,6 +1,7 @@
 // User Model
 
 import { Model } from "@vuex-orm/core";
+import User from "@/models/User";
 
 export default class Marker extends Model {
   // This is the name used as module name of the Vuex Store.
@@ -11,6 +12,8 @@ export default class Marker extends Model {
   static fields() {
     return {
       id: this.attr(null),
+      creator_id: this.attr(null),
+      creator: this.belongsTo(User, 'creator_id'),
       latlng: this.attr(null),
       image: this.attr(null)
     };
@@ -19,7 +22,6 @@ export default class Marker extends Model {
   static fetch() {
     const accessToken = sessionStorage.getItem("access_token");
     if (accessToken) {
-      console.log(accessToken);
       fetch(
         "https://v5g7mgbgs6.execute-api.ap-northeast-1.amazonaws.com/api/markers",
         {

@@ -1,6 +1,7 @@
 // User Model
 
 import { Model } from "@vuex-orm/core";
+import User from "@/models/User";
 
 export default class Comment extends Model {
   static entity = "comments";
@@ -9,9 +10,13 @@ export default class Comment extends Model {
     return {
       id: this.attr(null),
       markerId: this.attr(null),
-      creator: this.attr(null),
+      creator_id: this.attr(null),
+      creator: this.belongsTo(User, 'creator_id'),
       links: this.attr(null),
-      text: this.attr(null),
+      front: this.attr(null),
+      back: this.attr(null),
+      polygons: this.attr(null),
+      width: this.attr(null),
     };
   }
 
