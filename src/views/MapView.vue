@@ -1,5 +1,47 @@
 <template>
-  <div class="text-center">
+  <div class="text-center fill-height" style="overflow: hidden;">
+    <v-dialog v-model="deleteDialog" max-width="500">
+      <v-card>
+        <v-card-title>
+          Are you sure?
+        </v-card-title>
+        <v-card-text>
+          Are you sure you want to delete this marker? This action cannot be
+          undone.
+        </v-card-text>
+        <v-card-actions>
+          <v-spacer />
+          <v-btn text color="warning" @click="deleteMarker(currentMarker.id)">
+            DELETE
+          </v-btn>
+          <v-btn text @click="deleteDialog = false">
+            Cancel
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+    <v-navigation-drawer v-model="navDrawer" absolute bottom hide-overlay>
+      <v-card v-if="currentMarker" class="mx-auto my-12" elevation="0">
+        <v-card-text>
+          <v-img
+            height="250"
+            class="ma-5"
+            :src="currentMarker.image"
+            @click="
+              $router.push({
+                name: 'marker-detail',
+                params: { id: currentMarker.id }
+              })
+            "
+          />
+        </v-card-text>
+        <v-card-actions>
+          <v-btn text @click="deleteDialog = true">
+            Delete Marker
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-navigation-drawer>
     <google-sign-in-button
       class="floating-button"
       style="right: 10px; top: 10px;"
@@ -8,7 +50,8 @@
       fab
       class="floating-button"
       :style="locationButtonStyle"
-      @click="following = true"
+      :color="following ? 'blue' : 'default'"
+      @click="following = !following"
     >
       <v-icon>mdi-map-marker-outline</v-icon>
     </v-btn>
@@ -28,7 +71,14 @@
       prepend-icon=""
       @change="addImage"
     />
-    <main-map :following="following" @click="mapClick($event)" />
+    <main-map
+      :following="following"
+      @click="mapClick($event)"
+      @markerClick="
+        currentMarker = $event;
+        navDrawer = true;
+      "
+    />
     <v-snackbar v-model="clickable" timeout="-1" dark>
       <p class="text-center font-weight-bold">
         Click to add marker
@@ -47,6 +97,9 @@ export default {
   },
   data() {
     return {
+      navDrawer: false,
+      deleteDialog: false,
+      currentMarker: null,
       model: true,
       carosel: 0,
       following: false,
@@ -82,12 +135,18 @@ export default {
     }
   },
   methods: {
+    deleteMarker(id) {
+      Marker.delete(id);
+      this.navDrawer = false;
+      this.currentMarker = null;
+      this.deleteDialog = false;
+    },
     showImageUpload() {
-      this.$refs.imageUpload.$refs.input.click()
+      this.$refs.imageUpload.$refs.input.click();
     },
     addImage(file) {
-      this.image = file
-      this.clickable = true
+      this.image = file;
+      this.clickable = true;
     },
     keydown(e) {
       this.$emit("keydown", e);
@@ -101,7 +160,7 @@ export default {
           latlng: e.latlng,
           image: this.image
         };
-        Marker.uploadMarker(marker)
+        Marker.uploadMarker(marker);
         this.image = { trigger: false, jpeg: null };
         this.clickable = false;
       }

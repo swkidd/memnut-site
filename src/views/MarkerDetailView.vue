@@ -31,12 +31,12 @@
           <v-spacer />
           <v-btn
             @click="
-              isCreatePoints = true;
+              isCreateFlashCard = true;
               dialog = false;
             "
             text
             :color="isCreatePoints ? 'green' : 'default'"
-            >Add Polygon</v-btn
+            >Outline Image</v-btn
           >
         </v-card-actions>
       </v-card>
@@ -66,7 +66,7 @@
               <v-list-item-content>
                 <v-list-item-title
                   class="text-left"
-                  v-text="comment.creator.first_name"
+                  v-text="comment.creator.given_name"
                 />
               </v-list-item-content>
             </v-list-item>
@@ -78,8 +78,21 @@
         </v-card>
       </v-col>
     </v-row>
-    <v-snackbar v-model="isCreatePoints" timeout="-1">
+    <v-snackbar v-model="isCreateFlashCard" timeout="-1" text>
       <v-row justify="center">
+        <v-btn
+          text
+          @click="addPoint"
+          :color="isCreatePoints ? 'green' : 'default'"
+        >
+          Add Point
+        </v-btn>
+        <v-btn
+          text
+          @click="clearPoints"
+        >
+          Clear Points
+        </v-btn>
         <v-btn text @click="submit">
           Create Flashcard
         </v-btn>
@@ -108,6 +121,7 @@ export default {
       points: [],
       polygons: [],
       isCreatePoints: false,
+      isCreateFlashCard: false,
       comment: {
         dialog: false,
         current: null
@@ -144,12 +158,6 @@ export default {
         .first();
     },
     comments() {
-      console.log(
-        Comment.query()
-          .where("markerId", this.id)
-          .with("creator")
-          .get()
-      );
       return Comment.query()
         .where("markerId", this.id)
         .with("creator")
@@ -169,6 +177,9 @@ export default {
     }
   },
   methods: {
+    addPoint() {
+      this.isCreatePoints = true;
+    },
     commentClick(comment) {
       this.comment.current = comment;
       this.clearPolygons();
@@ -207,7 +218,6 @@ export default {
           allowTouchScrolling: true
         });
         this.canvas = canvas;
-        fabric.Object.prototype.selectable = false;
 
         img.scaleToWidth(this.canvasWidth);
         img.selectable = false;
@@ -231,7 +241,6 @@ export default {
             fill: "white",
             left: positionX,
             top: positionY,
-            selectable: false,
             originX: "center",
             originY: "center",
             hoverCursor: "auto",
@@ -241,6 +250,7 @@ export default {
           this.canvas.add(circlePoint);
           this.points = [...this.points, circlePoint];
           this.canvas.bringToFront(circlePoint);
+          this.isCreatePoints = false;
         }
       });
     },
@@ -269,6 +279,7 @@ export default {
       this.polygons = [...this.polygons, poly];
     },
     submit() {
+      if (this.front === '' || this.back === '') return
       this.clearPolygons();
       this.createPolygon();
       this.clearPoints();
@@ -288,6 +299,7 @@ export default {
       this.front = "";
       this.back = "";
       this.isCreatePoints = false;
+      this.isCreateFlashCard = false;
       if (this.comments.length === 1) {
         setTimeout(() => {
           this.$router.go();
@@ -298,6 +310,7 @@ export default {
       this.clearPoints();
       this.clearPolygons();
       this.isCreatePoints = false;
+      this.isCreateFlashCard = false;
     }
   }
 };

@@ -22,6 +22,7 @@ export default {
       sessionStorage.setItem("access_token", id_token);
 
       // fetch data on login
+      Marker.deleteAll()
       Marker.fetch()
     },
     onFailure(error) {

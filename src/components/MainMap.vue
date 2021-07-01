@@ -1,29 +1,5 @@
 <template>
   <div>
-    <v-navigation-drawer v-model="navDrawer" absolute bottom hide-overlay>
-      <v-card
-        v-if="currentMarker"
-        class="mx-auto my-12"
-        max-width="374"
-        elevation="0"
-      >
-        <v-img height="250" class="ma-5" :src="currentMarker.image" />
-        <v-card-actions>
-          <v-spacer />
-          <v-btn
-            text
-            @click="
-              $router.push({
-                name: 'marker-detail',
-                params: { id: currentMarker.id }
-              })
-            "
-          >
-            View
-          </v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-navigation-drawer>
     <l-map
       ref="map"
       :center="center"
@@ -37,11 +13,9 @@
         v-for="(marker, i) in markers.filter(m => m.latlng)"
         :key="i"
         :lat-lng="marker.latlng"
-        @click="
-          currentMarker = marker;
-          navDrawer = true;
-        "
+        @click="markerClick(marker)"
       >
+        >
         <!-- <l-popup v-if="marker.image">
           <v-card class="mx-auto my-12" max-width="374" elevation="0">
             <v-img height="150" class="ma-5" :src="marker.image" />
@@ -109,9 +83,12 @@ export default {
     return {
       center: [35.77, 139.3],
       zoom: 13,
-      navDrawer: false,
-      currentMarker: null,
-      isFollowing: false,
+      follow: {
+        is: false,
+        interval: null,
+        marker: null,
+        circle: null
+      },
       url: "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
       attribution:
         '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
@@ -119,8 +96,10 @@ export default {
   },
   watch: {
     following(val) {
-      if (val && !this.isFollowing) {
+      if (val && !this.follow.is) {
         this.initFollow();
+      } else if (!val && this.follow.is) {
+        this.stopFollowing();
       }
     }
   },
@@ -145,6 +124,9 @@ export default {
     }
   },
   methods: {
+    markerClick(marker) {
+      this.$emit("markerClick", marker);
+    },
     markerImageClick(marker) {
       this.center = { lng: marker.latlng.lng, lat: marker.latlng.lat };
       if (this.$refs[`marker${marker.id}`].length) {
@@ -153,30 +135,47 @@ export default {
       setTimeout(() => {
         this.zoom = 30;
       }, 500);
-      this.currentMarker = marker;
-      this.navDrawer = true;
+      this.markerClick(marker);
+    },
+    locate() {
+      this.$refs.map.mapObject.locate({ setView: true });
     },
     initFollow() {
       this.$nextTick(() => {
         this.$refs.map.mapObject.on("locationfound", this.onLocationFound);
         this.$refs.map.mapObject.on("locationerror", this.onLocationError);
-        this.$refs.map.mapObject.locate({ setView: true });
+        this.locate();
+        this.follow.interval = setInterval(this.locate, 3000);
       });
-      this.isFollowing = true;
+    },
+    stopFollowing() {
+      this.follow.is = false;
+      if (this.follow.interval) {
+        clearInterval(this.follow.interval);
+        this.follow.interval = null;
+      }
+      if (this.follow.marker) {
+        this.$refs.map.mapObject.removeLayer(this.follow.marker);
+      }
+      if (this.follow.circle) {
+        this.$refs.map.mapObject.removeLayer(this.follow.circle);
+      }
     },
     onLocationFound(e) {
       var radius = e.accuracy;
-
-      L.marker(e.latlng).addTo(this.$refs.map.mapObject);
-
-      L.circle(e.latlng, radius).addTo(this.$refs.map.mapObject);
+      if (this.follow.interval && !this.follow.is) {
+        this.follow.marker = L.marker(e.latlng);
+        this.follow.marker.addTo(this.$refs.map.mapObject);
+        this.follow.circle = L.circle(e.latlng, radius);
+        this.follow.circle.addTo(this.$refs.map.mapObject);
+        this.follow.is = true;
+      }
     },
     onLocationError(e) {
       alert(e.message);
     },
     mapClick(e) {
       this.$emit("click", e);
-      this.navDrawer = false;
     }
   }
 };
