@@ -87,10 +87,7 @@
         >
           Add Point
         </v-btn>
-        <v-btn
-          text
-          @click="clearPoints"
-        >
+        <v-btn text @click="clearPoints">
           Clear Points
         </v-btn>
         <v-btn text @click="submit">
@@ -126,6 +123,7 @@ export default {
         dialog: false,
         current: null
       },
+      saveMem: true,
       canvas: null,
       url: null,
       imageAdded: false,
@@ -205,27 +203,31 @@ export default {
       });
     },
     initCanvas(url) {
-      fabric.Image.fromURL(url, img => {
-        const ref = this.$refs.can;
+      fabric.Image.fromURL(
+        url,
+        img => {
+          const ref = this.$refs.can;
 
-        this.canvasWidth = this.getWidth;
-        this.canvasHeight = img.height * (this.getWidth / img.width);
+          this.canvasWidth = this.getWidth;
+          this.canvasHeight = img.height * (this.getWidth / img.width);
 
-        const canvas = new fabric.Canvas(ref, {
-          width: this.canvasWidth,
-          height: this.canvasHeight,
-          preserveObjectStacking: true,
-          allowTouchScrolling: true
-        });
-        this.canvas = canvas;
+          const canvas = new fabric.Canvas(ref, {
+            width: this.canvasWidth,
+            height: this.canvasHeight,
+            preserveObjectStacking: true,
+            allowTouchScrolling: true
+          });
+          this.canvas = canvas;
 
-        img.scaleToWidth(this.canvasWidth);
-        img.selectable = false;
-        img.hoverCursor = "default";
+          img.scaleToWidth(this.canvasWidth);
+          img.selectable = false;
+          img.hoverCursor = "default";
 
-        canvas.add(img);
-        this.initCanvasEvents();
-      });
+          canvas.add(img);
+          this.initCanvasEvents();
+        },
+        { crossOrigin: "Anonymous" }
+      );
     },
     initCanvasEvents() {
       this.canvas.on({
@@ -279,20 +281,54 @@ export default {
       this.polygons = [...this.polygons, poly];
     },
     submit() {
-      if (this.front === '' || this.back === '') return
+      if (this.front === "" || this.back === "") return;
       this.clearPolygons();
       this.createPolygon();
       this.clearPoints();
 
       if (this.polygons.length < 1) return;
 
-      Comment.put({
-        markerId: this.id,
-        front: this.front,
-        back: this.back,
-        polygons: this.polygons,
-        width: this.canvasWidth
-      });
+      // Comment.put({
+      //   markerId: this.id,
+      //   front: this.front,
+      //   back: this.back,
+      //   polygons: this.polygons,
+      //   width: this.canvasWidth
+      // });
+
+      if (this.saveMem) {
+        const obj = this.polygons[0];
+        const c = document.createElement("canvas");
+        const f = new fabric.Canvas(c);
+        const images = f.getObjects().filter(o => o.get("type") === "image");
+        if (images.length > 0) {
+          const image = images[0];
+          let clonedImage;
+          fabric.util.enlivenObjects(JSON.stringify(image), function(objects) {
+            if (objects.length > 0 && objects[0].get("type") === "image") {
+              clonedImage = objects[0];
+              f.add(clonedImage);
+            }
+          });
+          clonedImage.clipPath = new fabric.Polygon(obj.get("points"), {
+            left: obj.left,
+            top: obj.top,
+            scaleX: obj.scaleX,
+            scaleY: obj.scaleY,
+            absolutePositioned: true
+          });
+          var mem = f.toDataURL({
+            format: "image/jpeg",
+            left: obj.left,
+            right: obj.right,
+            width: obj.width,
+            height: obj.height
+          });
+          const i = document.createElement("img");
+          i.src = mem;
+          i.onload = () => document.body.appendChild(i);
+        }
+      }
 
       this.clearPoints();
       this.clearPolygons();
@@ -300,11 +336,11 @@ export default {
       this.back = "";
       this.isCreatePoints = false;
       this.isCreateFlashCard = false;
-      if (this.comments.length === 1) {
-        setTimeout(() => {
-          this.$router.go();
-        }, 1000);
-      }
+      // if (this.comments.length === 1) {
+      //   setTimeout(() => {
+      //     this.$router.go();
+      //   }, 1000);
+      // }
     },
     cancel() {
       this.clearPoints();

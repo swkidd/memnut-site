@@ -164,6 +164,7 @@ export default {
         this.image = { trigger: false, jpeg: null };
         this.clickable = false;
       }
+      this.navDrawer = false;
     }
   }
 };

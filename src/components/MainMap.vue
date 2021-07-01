@@ -82,7 +82,7 @@ export default {
   data() {
     return {
       center: [35.77, 139.3],
-      zoom: 13,
+      zoom: 2,
       follow: {
         is: false,
         interval: null,
@@ -102,9 +102,6 @@ export default {
         this.stopFollowing();
       }
     }
-  },
-  mounted() {
-    Marker.fetch();
   },
   computed: {
     scrollStyles() {
@@ -128,13 +125,13 @@ export default {
       this.$emit("markerClick", marker);
     },
     markerImageClick(marker) {
-      this.center = { lng: marker.latlng.lng, lat: marker.latlng.lat };
       if (this.$refs[`marker${marker.id}`].length) {
         this.$refs[`marker${marker.id}`][0].mapObject.openPopup();
       }
+      this.zoom = 30;
       setTimeout(() => {
-        this.zoom = 30;
-      }, 500);
+        this.center = { lng: marker.latlng.lng, lat: marker.latlng.lat };
+      }, 100);
       this.markerClick(marker);
     },
     locate() {
