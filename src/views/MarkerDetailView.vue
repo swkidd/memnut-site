@@ -36,7 +36,7 @@
           v-bind="attrs"
           fab
           class="floating-button"
-          @click="dialog = true"
+          @click="addMem"
         >
           <v-icon>mdi-plus</v-icon>
         </v-btn>
@@ -165,6 +165,7 @@ export default {
       mem: {
         dialog: false,
         selected: [],
+        fabricImages: [],
       },
       comment: {
         dialog: false,
@@ -209,7 +210,7 @@ export default {
     comments() {
       return Comment.query()
         .where("markerId", this.id)
-        .with("creator")
+        .withAllRecursive()
         .get();
     },
     hasComments() {
@@ -226,6 +227,11 @@ export default {
     }
   },
   methods: {
+    addMem() {
+      this.dialog = true
+      this.clearPolygons()
+      this.removeFabricImages()
+    },
     startOutline() {
       this.isCreateMem = true;
       this.dialog = false;
@@ -234,6 +240,10 @@ export default {
         image.src = mem.image
         image.onload = () => {
           const fImage = new fabric.Image(image)
+          if (mem.width) {
+            fImage.scaleX = fImage.scaleY = this.canvasWidth / mem.width
+          }
+          this.mem.fabricImages = [...this.mem.fabricImages, { mem, fImage } ]
           this.canvas.add(fImage)
         }
       })
@@ -244,6 +254,7 @@ export default {
     commentClick(comment) {
       this.comment.current = comment;
       this.clearPolygons();
+      this.removeFabricImages()
       fabric.util.enlivenObjects(comment.polygons, enlivenedObjects => {
         enlivenedObjects.forEach(obj => {
           const scaleFactor = this.canvasWidth / comment.width;
@@ -264,6 +275,20 @@ export default {
         });
         this.canvas.renderAll();
       });
+      comment.mems.forEach(commentMem => {
+        const image = new Image()
+        image.src = commentMem.mem.image
+        image.onload = () => {
+          const fImage = new fabric.Image(image)
+          const scaleFactor = this.canvasWidth / comment.width
+          fImage.scaleX = fImage.scaleY = scaleFactor
+          fImage.top = commentMem.top * scaleFactor
+          fImage.left = commentMem.left * scaleFactor
+          fImage.selectable = false
+          this.mem.fabricImages = [...this.mem.fabricImages, { mem: commentMem.mem, fImage } ]
+          this.canvas.add(fImage)
+        }
+      })
     },
     initCanvas(url) {
       fabric.Image.fromURL(
@@ -323,6 +348,11 @@ export default {
       this.points.forEach(point => this.canvas.remove(point));
       this.points = [];
     },
+    removeFabricImages() {
+      this.mem.fabricImages.forEach(fi => this.canvas.remove(fi.fImage))
+      this.mem.fabricImage = []
+      this.canvas.renderAll()
+    },
     clearPolygons() {
       this.polygons.forEach(polygon => this.canvas.remove(polygon));
       this.polygons = [];
@@ -351,12 +381,23 @@ export default {
 
       if (this.polygons.length < 1) return;
 
+      const mems = this.mem.fabricImages.map(fi => {
+        return {
+          mem_id: fi.mem.id,
+          left: fi.fImage.left,
+          top: fi.fImage.top,
+          width: fi.fImage.width,
+          height: fi.fImage.height,
+        }
+      })
+
       Comment.put({
         markerId: this.id,
         front: this.front,
         back: this.back,
         polygons: this.polygons,
-        width: this.canvasWidth
+        width: this.canvasWidth,
+        mems,
       });
 
       if (this.saveMem) {
@@ -385,10 +426,14 @@ export default {
 
           Mem.put({
             marker_id: this.marker.id,
+            width: this.canvasWidth,
             image: mem,
           })
         }
       }
+
+      this.removeFabricImages()
+      this.mem = { dialog: false, selected: [], fabricImages: [] }
 
       this.clearPoints();
       this.clearPolygons();

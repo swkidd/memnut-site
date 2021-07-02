@@ -1,7 +1,7 @@
-// User Model
 
 import { Model } from "@vuex-orm/core";
 import User from "@/models/User";
+import CommentMem from "@/models/CommentMem";
 
 export default class Comment extends Model {
   static entity = "comments";
@@ -17,6 +17,8 @@ export default class Comment extends Model {
       back: this.attr(null),
       polygons: this.attr(null),
       width: this.attr(null),
+      mem_ids: this.attr([]),
+      mems: this.hasManyBy(CommentMem, 'mem_ids')
     };
   }
 

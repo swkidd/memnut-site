@@ -71,7 +71,7 @@ export default class Mem extends Model {
           }),
           body: JSON.stringify(data)
         }
-      ).then(() => {});
+      ).then(() => Mem.fetch());
     }
   }
 }
