@@ -25,7 +25,7 @@ export default class Mem extends Model {
     const accessToken = sessionStorage.getItem("access_token");
     if (accessToken) {
       fetch(
-        "https://v5g7mgbgs6.execute-api.ap-northeast-1.amazonaws.com/api/mems",
+        "https://v5g7mgbgs6.execute-api.ap-northeast-1.amazonaws.com/api/mem",
         {
           headers: new Headers({
             Authorization: accessToken,
@@ -46,7 +46,7 @@ export default class Mem extends Model {
     const accessToken = sessionStorage.getItem("access_token");
     if (accessToken) {
       fetch(
-        `https://v5g7mgbgs6.execute-api.ap-northeast-1.amazonaws.com/api/mems/${id}`,
+        `https://v5g7mgbgs6.execute-api.ap-northeast-1.amazonaws.com/api/mem/${id}`,
         {
           headers: new Headers({
             Authorization: accessToken,
@@ -62,20 +62,16 @@ export default class Mem extends Model {
   static put(data) {
     const accessToken = sessionStorage.getItem("access_token");
     if (accessToken) {
-      let form = new FormData();
-      form.append("marker_id", data.marker_id);
-      form.append("image", data.image);
-
       fetch(
-        "https://v5g7mgbgs6.execute-api.ap-northeast-1.amazonaws.com/api/mems",
+        "https://v5g7mgbgs6.execute-api.ap-northeast-1.amazonaws.com/api/mem",
         {
           method: "PUT",
           headers: new Headers({
             Authorization: accessToken
           }),
-          body: form
+          body: JSON.stringify(data)
         }
-      ).then(response => console.log(response));
+      ).then(() => {});
     }
   }
 }

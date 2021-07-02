@@ -1,5 +1,28 @@
 <template>
   <v-container fluid v-if="marker">
+    <v-dialog v-model="mem.dialog" max-width="500">
+      <template v-slot:activator="{ on, attrs }">
+        <v-btn
+          v-on="on"
+          v-bind="attrs"
+          fab
+          class="floating-button"
+          style="bottom: 100px; right: 25px;"
+          @click="mem.dialog = true"
+        >
+          M
+        </v-btn>
+      </template>
+      <v-card class="pa-5" max-width="500">
+        <v-card-title>
+          <v-row justify="center">
+          <v-avatar v-for="(mem, i) in mems" :key="i" class="ma-3">
+            <img :src="mem.image" />
+          </v-avatar>
+          </v-row>
+        </v-card-title>
+      </v-card>
+    </v-dialog>
     <v-dialog v-model="comment.dialog" max-width="500">
       <v-card v-if="comment.current" outlined>
         <v-card-title v-text="comment.current.front" />
@@ -20,23 +43,42 @@
       </template>
       <v-card outlined>
         <v-card-title>
-          Add Flashcard
+          Create Mem
         </v-card-title>
         <v-card-text>
           <v-textarea v-model="front" label="Front..." outlined />
           <v-textarea v-model="back" label="Back..." outlined />
+          <v-autocomplete
+            v-model="mem.selected"
+            :items="mems"
+            item-text="id"
+            label="Add Mems"
+            multiple
+            outlined
+            return-object
+          >
+            <template v-slot:selection="data">
+              <v-avatar left class="ma-1">
+                <v-img :src="data.item.image"></v-img>
+              </v-avatar>
+            </template>
+            <template v-slot:item="data">
+              <v-row justify="center" class="my-3">
+                <img height="50" :src="data.item.image">
+              </v-row>
+            </template>
+          </v-autocomplete>
         </v-card-text>
         <v-divider />
         <v-card-actions>
           <v-spacer />
           <v-btn
             @click="
-              isCreateFlashCard = true;
-              dialog = false;
+              startOutline
             "
             text
             :color="isCreatePoints ? 'green' : 'default'"
-            >Outline Image</v-btn
+            >Outline Mem Image</v-btn
           >
         </v-card-actions>
       </v-card>
@@ -78,7 +120,7 @@
         </v-card>
       </v-col>
     </v-row>
-    <v-snackbar v-model="isCreateFlashCard" timeout="-1" text>
+    <v-snackbar v-model="isCreateMem" timeout="-1" text>
       <v-row justify="center">
         <v-btn
           text
@@ -104,6 +146,7 @@
 <script>
 import { fabric } from "fabric";
 import Marker from "@/models/Marker";
+import Mem from "@/models/Mem";
 import Comment from "@/models/Comment";
 export default {
   name: "MarkerDetailView",
@@ -118,7 +161,11 @@ export default {
       points: [],
       polygons: [],
       isCreatePoints: false,
-      isCreateFlashCard: false,
+      isCreateMem: false,
+      mem: {
+        dialog: false,
+        selected: [],
+      },
       comment: {
         dialog: false,
         current: null
@@ -138,6 +185,7 @@ export default {
     if (!this.id) {
       this.id = this.$router.params.id;
     }
+    Mem.fetch();
     Marker.fetch();
     Comment.fetchById(this.id);
   },
@@ -148,6 +196,9 @@ export default {
       } else {
         return this.$vuetify.breakpoint.width * (8 / 12) - 20;
       }
+    },
+    mems() {
+      return Mem.all()
     },
     marker() {
       return Marker.query()
@@ -175,6 +226,18 @@ export default {
     }
   },
   methods: {
+    startOutline() {
+      this.isCreateMem = true;
+      this.dialog = false;
+      this.mem.selected.forEach(mem => {
+        const image = new Image()
+        image.src = mem.image
+        image.onload = () => {
+          const fImage = new fabric.Image(image)
+          this.canvas.add(fImage)
+        }
+      })
+    },
     addPoint() {
       this.isCreatePoints = true;
     },
@@ -288,45 +351,42 @@ export default {
 
       if (this.polygons.length < 1) return;
 
-      // Comment.put({
-      //   markerId: this.id,
-      //   front: this.front,
-      //   back: this.back,
-      //   polygons: this.polygons,
-      //   width: this.canvasWidth
-      // });
+      Comment.put({
+        markerId: this.id,
+        front: this.front,
+        back: this.back,
+        polygons: this.polygons,
+        width: this.canvasWidth
+      });
 
       if (this.saveMem) {
         const obj = this.polygons[0];
-        const c = document.createElement("canvas");
-        const f = new fabric.Canvas(c);
-        const images = f.getObjects().filter(o => o.get("type") === "image");
+        const f = new fabric.StaticCanvas(null, { width: obj.width, height: obj.height });
+        const images = this.canvas.getObjects().filter(o => o.get("type") === "image");
+
         if (images.length > 0) {
           const image = images[0];
-          let clonedImage;
-          fabric.util.enlivenObjects(JSON.stringify(image), function(objects) {
-            if (objects.length > 0 && objects[0].get("type") === "image") {
-              clonedImage = objects[0];
-              f.add(clonedImage);
-            }
-          });
+          let clonedImage = fabric.util.object.clone(image);
+          clonedImage.left = -1 * obj.left
+          clonedImage.top = -1 * obj.top
+          f.add(clonedImage);
+          f.renderAll()
           clonedImage.clipPath = new fabric.Polygon(obj.get("points"), {
-            left: obj.left,
-            top: obj.top,
+            left: 0,
+            top: 0,
             scaleX: obj.scaleX,
             scaleY: obj.scaleY,
             absolutePositioned: true
           });
+
           var mem = f.toDataURL({
             format: "image/jpeg",
-            left: obj.left,
-            right: obj.right,
-            width: obj.width,
-            height: obj.height
           });
-          const i = document.createElement("img");
-          i.src = mem;
-          i.onload = () => document.body.appendChild(i);
+
+          Mem.put({
+            marker_id: this.marker.id,
+            image: mem,
+          })
         }
       }
 
@@ -335,7 +395,7 @@ export default {
       this.front = "";
       this.back = "";
       this.isCreatePoints = false;
-      this.isCreateFlashCard = false;
+      this.isCreateMem = false;
       // if (this.comments.length === 1) {
       //   setTimeout(() => {
       //     this.$router.go();
@@ -346,7 +406,7 @@ export default {
       this.clearPoints();
       this.clearPolygons();
       this.isCreatePoints = false;
-      this.isCreateFlashCard = false;
+      this.isCreateMem = false;
     }
   }
 };
