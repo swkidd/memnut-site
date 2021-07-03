@@ -15,7 +15,7 @@ export default class Marker extends Model {
       creator_id: this.attr(null),
       creator: this.belongsTo(User, "creator_id"),
       latlng: this.attr(null),
-      image: this.attr(null)
+      images: this.attr([])
     };
   }
 
@@ -34,45 +34,57 @@ export default class Marker extends Model {
         .then(response => response.json())
         .then(resp =>
           resp.Items.forEach(data => {
-            if (data.image_key) {
-              fetch(
-                "https://v5g7mgbgs6.execute-api.ap-northeast-1.amazonaws.com/api/download",
-                {
-                  method: "POST",
-                  headers: new Headers({
-                    Authorization: accessToken,
-                    "Content-Type": "application/json"
-                  }),
-                  body: JSON.stringify({ key: data.image_key })
-                }
-              )
-                .then(response => response.json())
-                .then(urlData => {
-                  data.image = urlData.data;
-                  Marker.insert({ data });
+            if (data.image_keys) {
+              let promises = [];
+              data.image_keys.forEach(image_key => {
+                promises.push(
+                  fetch(
+                    "https://v5g7mgbgs6.execute-api.ap-northeast-1.amazonaws.com/api/download",
+                    {
+                      method: "POST",
+                      headers: new Headers({
+                        Authorization: accessToken,
+                        "Content-Type": "application/json"
+                      }),
+                      body: JSON.stringify({ key: image_key })
+                    }
+                  )
+                    .then(response => response.json())
+                    .then(urlData => urlData.data)
+                );
+              });
+              Promise.all(promises).then(images => {
+                Marker.insert({
+                  data: {
+                    id: data.id,
+                    creator: data.creator,
+                    latlng: data.latlng,
+                    images
+                  }
                 });
+              });
             }
           })
         );
     }
   }
 
-  static fetchById(id) {
-    const accessToken = sessionStorage.getItem("access_token");
-    if (accessToken) {
-      fetch(
-        `https://v5g7mgbgs6.execute-api.ap-northeast-1.amazonaws.com/api/markers/${id}`,
-        {
-          headers: new Headers({
-            Authorization: accessToken,
-            "Content-Type": "application/json"
-          })
-        }
-      )
-        .then(response => response.json())
-        .then(resp => Marker.insert({ data: resp.Item }));
-    }
-  }
+  // static fetchById(id) {
+  //   const accessToken = sessionStorage.getItem("access_token");
+  //   if (accessToken) {
+  //     fetch(
+  //       `https://v5g7mgbgs6.execute-api.ap-northeast-1.amazonaws.com/api/markers/${id}`,
+  //       {
+  //         headers: new Headers({
+  //           Authorization: accessToken,
+  //           "Content-Type": "application/json"
+  //         })
+  //       }
+  //     )
+  //       .then(response => response.json())
+  //       .then(resp => Marker.insert({ data: resp.Item }));
+  //   }
+  // }
 
   static delete(id) {
     const accessToken = sessionStorage.getItem("access_token");
@@ -95,29 +107,8 @@ export default class Marker extends Model {
     }
   }
 
-  static put(data) {
-    const accessToken = sessionStorage.getItem("access_token");
-    if (accessToken) {
-      let form = new FormData();
-      form.append("latlng", data.latlng);
-      form.append("image", data.image);
-
-      fetch(
-        "https://v5g7mgbgs6.execute-api.ap-northeast-1.amazonaws.com/api/markers",
-        {
-          method: "PUT",
-          headers: new Headers({
-            Authorization: accessToken
-          }),
-          body: form
-        }
-      ).then(response => console.log(response));
-      // .then(response => response.json())
-      // .then(data =>  Marker.insert({ data }));
-    }
-  }
-
   static async uploadMarker(marker) {
+    if (marker.images.length !== 1) return;
     const accessToken = sessionStorage.getItem("access_token");
     if (accessToken) {
       Marker.insert({ data: marker });
@@ -138,7 +129,42 @@ export default class Marker extends Model {
       Object.keys(json.data.fields).forEach(key =>
         form.append(key, json.data.fields[key])
       );
-      form.append("file", marker.image);
+      form.append("file", marker.images[0]);
+
+      response = await fetch(json.data.url, { method: "POST", body: form });
+      if (!response.ok) return "Failed to upload via presigned POST";
+
+      setTimeout(() => {
+        Marker.deleteAll();
+        Marker.fetch();
+      }, 5000);
+
+      return `File uploaded successfully`;
+    }
+    return "File upload failed";
+  }
+
+  static async addImageToMarker(marker, image) {
+    const accessToken = sessionStorage.getItem("access_token");
+    if (accessToken) {
+      let response = await fetch(
+        "https://v5g7mgbgs6.execute-api.ap-northeast-1.amazonaws.com/api/upload",
+        {
+          method: "POST",
+          headers: new Headers({
+            Authorization: accessToken,
+            "Content-Type": "application/json"
+          }),
+          body: JSON.stringify({ markerid: marker.id, latlng: marker.latlng })
+        }
+      );
+      let json = await response.json();
+
+      let form = new FormData();
+      Object.keys(json.data.fields).forEach(key =>
+        form.append(key, json.data.fields[key])
+      );
+      form.append("file", image);
 
       response = await fetch(json.data.url, { method: "POST", body: form });
       if (!response.ok) return "Failed to upload via presigned POST";

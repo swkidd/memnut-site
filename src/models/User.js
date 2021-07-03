@@ -11,10 +11,10 @@ export default class GoogleUser extends Model {
   static fields () {
     return {
       id: this.attr(null),
-      name: this.attr(undefined),
-      family_name: this.attr(undefined),
-      given_name: this.attr(undefined),
-      picture: this.attr(undefined),
+      name: this.attr(null),
+      family_name: this.attr(null),
+      given_name: this.attr(null),
+      picture: this.attr(null),
     }
   }
 }

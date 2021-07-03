@@ -55,7 +55,7 @@ export default class Mem extends Model {
         }
       )
         .then(response => response.json())
-        .then(resp => Marker.insert({ data: resp.Item }));
+        .then(resp => Mem.insert({ data: resp.Item }));
     }
   }
 

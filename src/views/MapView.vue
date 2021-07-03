@@ -24,9 +24,11 @@
       <v-card v-if="currentMarker" class="mx-auto my-12" elevation="0">
         <v-card-text>
           <v-img
+            v-for="(image, i) in currentMarker.images"
+            :key="i"
             height="250"
             class="ma-5"
-            :src="currentMarker.image"
+            :src="image"
             @click="
               $router.push({
                 name: 'marker-detail',
@@ -38,6 +40,9 @@
         <v-card-actions>
           <v-btn text @click="deleteDialog = true">
             Delete Marker
+          </v-btn>
+          <v-btn text @click="showImageUpload(false)">
+            Add Image to Marker
           </v-btn>
         </v-card-actions>
       </v-card>
@@ -59,7 +64,7 @@
       fab
       class="floating-button"
       :style="floatingButtonStyle"
-      @click="showImageUpload"
+      @click="showImageUpload(true)"
     >
       <v-icon>mdi-image-outline</v-icon>
     </v-btn>
@@ -141,12 +146,18 @@ export default {
       this.currentMarker = null;
       this.deleteDialog = false;
     },
-    showImageUpload() {
+    showImageUpload(isMarkerImage) {
       this.$refs.imageUpload.$refs.input.click();
+      this.isMarkerImage = isMarkerImage;
     },
     addImage(file) {
       this.image = file;
-      this.clickable = true;
+      if (this.isMarkerImage) {
+        this.clickable = true;
+        this.isMarkerImage = false;
+      } else {
+        this.addImageToMarker(this.currentMarker)
+      }
     },
     keydown(e) {
       this.$emit("keydown", e);
@@ -158,13 +169,16 @@ export default {
       if (this.clickable) {
         const marker = {
           latlng: e.latlng,
-          image: this.image
+          images: [this.image]
         };
         Marker.uploadMarker(marker);
         this.image = { trigger: false, jpeg: null };
         this.clickable = false;
       }
       this.navDrawer = false;
+    },
+    addImageToMarker(marker) {
+      Marker.addImageToMarker(marker, this.image);
     }
   }
 };
