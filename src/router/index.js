@@ -13,7 +13,14 @@ const routes = [
     path: '/:id/:imageIndex',
     name: 'marker-detail',
     component: () => import('@/views/MarkerDetailView'),
-    props: true
+    props: (route) => {
+      const imageIndex = Number.parseInt(route.params.imageIndex)
+      if (Number.isNaN(imageIndex)) {
+        return 0
+      }
+      const id = route.params.id
+      return { id, imageIndex }
+    }
   },
 ]
 

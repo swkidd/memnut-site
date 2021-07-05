@@ -161,7 +161,7 @@ export default {
       required: true
     },
     imageIndex: {
-      type: String,
+      type: Number,
       required: true
     }
   },
@@ -202,11 +202,12 @@ export default {
   },
   computed: {
     getWidth() {
-      if (!this.hasComments || this.$vuetify.breakpoint.mobile) {
-        return this.$vuetify.breakpoint.width - 30;
-      } else {
-        return this.$vuetify.breakpoint.width * (8 / 12) - 20;
-      }
+      return this.$vuetify.breakpoint.width * (6 / 12) - 30;
+      // if (!this.hasComments || this.$vuetify.breakpoint.mobile) {
+      //   return this.$vuetify.breakpoint.width * (6 / 12) - 30;
+      // } else {
+      //   return this.$vuetify.breakpoint.width * (6 / 12) - 20;
+      // }
     },
     mems() {
       return Mem.all();
@@ -220,6 +221,7 @@ export default {
     comments() {
       return Comment.query()
         .where("markerId", this.id)
+        .where("imageIndex", this.imageIndex)
         .withAllRecursive()
         .get();
     },
@@ -251,9 +253,7 @@ export default {
         image.src = mem.image;
         image.onload = () => {
           const fImage = new fabric.Image(image);
-          if (mem.width) {
-            fImage.scaleX = fImage.scaleY = this.canvasWidth / mem.width;
-          }
+          fImage.scaleToWidth(200)
           this.mem.fabricImages = [...this.mem.fabricImages, { mem, fImage }];
           this.canvas.add(fImage);
         };
@@ -291,11 +291,14 @@ export default {
         image.src = commentMem.mem.image;
         image.onload = () => {
           const fImage = new fabric.Image(image);
-          const scaleFactor = this.canvasWidth / comment.width;
-          fImage.scaleX = fImage.scaleY = scaleFactor;
-          fImage.top = commentMem.top * scaleFactor;
-          fImage.left = commentMem.left * scaleFactor;
+          fImage.top = commentMem.top;
+          fImage.left = commentMem.left;
+          fImage.scaleX = commentMem.scaleX;
+          fImage.scaleY = commentMem.scaleY;
           fImage.selectable = false;
+          fImage.on("mouseup", () => {
+            this.comment.dialog = true;
+          });
           this.mem.fabricImages = [
             ...this.mem.fabricImages,
             { mem: commentMem.mem, fImage }
@@ -365,7 +368,7 @@ export default {
     },
     removeFabricImages() {
       this.mem.fabricImages.forEach(fi => this.canvas.remove(fi.fImage));
-      this.mem.fabricImage = [];
+      this.mem.fabricImages = [];
       this.canvas.renderAll();
     },
     clearPolygons() {
@@ -373,7 +376,6 @@ export default {
       this.polygons = [];
     },
     createPolygon() {
-      if (this.points.length < 3) return;
       this.points = [...this.points, fabric.util.object.clone(this.points[0])];
       var poly = new fabric.Polygon(
         this.points.map(point => point.getCenterPoint()),
@@ -390,32 +392,34 @@ export default {
     },
     submit() {
       if (this.front === "" || this.back === "") return;
-      this.clearPolygons();
-      this.createPolygon();
-      this.clearPoints();
 
-      if (this.polygons.length < 1) return;
+      let polygons = []
+      if (this.points.length > 2) {
+        this.createPolygon();
+        polygons = this.polygons;
+      }
 
       const mems = this.mem.fabricImages.map(fi => {
         return {
           mem_id: fi.mem.id,
           left: fi.fImage.left,
           top: fi.fImage.top,
-          width: fi.fImage.width,
-          height: fi.fImage.height
+          scaleX: fi.fImage.scaleX,
+          scaleY: fi.fImage.scaleY,
         };
       });
 
       Comment.put({
         markerId: this.id,
+        imageIndex: this.imageIndex,
         front: this.front,
         back: this.back,
-        polygons: this.polygons,
+        polygons,
         width: this.canvasWidth,
         mems
       });
 
-      if (this.saveMem) {
+      if (polygons.length > 0 && this.saveMem) {
         const obj = this.polygons[0];
         const f = new fabric.StaticCanvas(null, {
           width: obj.width,
@@ -440,15 +444,13 @@ export default {
             absolutePositioned: true
           });
 
-          var mem = f.toDataURL({
-            format: "image/jpeg"
+          const memImage = f.toDataURL({
+            format: "image/webp"
           });
 
-          Mem.put({
-            marker_id: this.marker.id,
-            width: this.canvasWidth,
-            image: mem
-          });
+          fetch(memImage)
+            .then(r => r.blob())
+            .then(blob => Mem.uploadMem(this.marker, blob))
         }
       }
 

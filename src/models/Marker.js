@@ -107,7 +107,7 @@ export default class Marker extends Model {
     }
   }
 
-  static async uploadMarker(marker) {
+  static async uploadMarker(marker, fileType) {
     if (marker.images.length !== 1) return;
     const accessToken = sessionStorage.getItem("access_token");
     if (accessToken) {
@@ -120,7 +120,7 @@ export default class Marker extends Model {
             Authorization: accessToken,
             "Content-Type": "application/json"
           }),
-          body: JSON.stringify({ latlng: marker.latlng })
+          body: JSON.stringify({ latlng: marker.latlng, fileType, type: "marker" })
         }
       );
       let json = await response.json();
@@ -144,7 +144,7 @@ export default class Marker extends Model {
     return "File upload failed";
   }
 
-  static async addImageToMarker(marker, image) {
+  static async addImageToMarker(marker, image, fileType) {
     const accessToken = sessionStorage.getItem("access_token");
     if (accessToken) {
       let response = await fetch(
@@ -155,7 +155,7 @@ export default class Marker extends Model {
             Authorization: accessToken,
             "Content-Type": "application/json"
           }),
-          body: JSON.stringify({ markerid: marker.id, latlng: marker.latlng })
+          body: JSON.stringify({ markerid: marker.id, latlng: marker.latlng, fileType, type: "marker" })
         }
       );
       let json = await response.json();

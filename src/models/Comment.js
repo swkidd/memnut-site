@@ -10,6 +10,7 @@ export default class Comment extends Model {
     return {
       id: this.attr(null),
       markerId: this.attr(null),
+      imageIndex: this.attr(null),
       creator_id: this.attr(null),
       creator: this.belongsTo(User, 'creator_id'),
       links: this.attr(null),

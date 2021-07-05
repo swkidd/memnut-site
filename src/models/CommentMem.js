@@ -9,8 +9,8 @@ export default class CommentMem extends Model {
       id: this.attr(null),
       mem_id: this.attr(null),
       mem: this.belongsTo(Mem, 'mem_id'),
-      width: this.attr(null),
-      height: this.attr(null),
+      scaleX: this.attr(null),
+      scaleY: this.attr(null),
       left: this.attr(null),
       top: this.attr(null),
     };

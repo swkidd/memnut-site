@@ -29,12 +29,7 @@
             height="250"
             class="ma-5"
             :src="image"
-            @click="
-              $router.push({
-                name: 'marker-detail',
-                params: { id: currentMarker.id, imageIndex: i }
-              })
-            "
+            @click="openDetailPage(currentMarker.id, i)"
           />
         </v-card-text>
         <v-card-actions>
@@ -116,7 +111,6 @@ export default {
       clickable: false,
       image: {
         trigger: false,
-        jpeg: null
       }
     };
   },
@@ -142,6 +136,13 @@ export default {
     }
   },
   methods: {
+    openDetailPage(id, imageIndex) {
+      const routeData = this.$router.resolve({
+        name: 'marker-detail',
+        params: { id, imageIndex }
+      });
+      window.open(routeData.href, '_blank');
+    },
     deleteMarker(id) {
       Marker.delete(id);
       this.navDrawer = false;
@@ -154,6 +155,7 @@ export default {
     },
     addImage(file) {
       this.image = file;
+      this.fileType = file.type;
       if (this.isMarkerImage) {
         this.clickable = true;
         this.isMarkerImage = false;
@@ -173,14 +175,14 @@ export default {
           latlng: e.latlng,
           images: [this.image]
         };
-        Marker.uploadMarker(marker);
-        this.image = { trigger: false, jpeg: null };
+        Marker.uploadMarker(marker, this.fileType);
+        this.image = { trigger: false };
         this.clickable = false;
       }
       this.navDrawer = false;
     },
     addImageToMarker(marker) {
-      Marker.addImageToMarker(marker, this.image);
+      Marker.addImageToMarker(marker, this.image, this.fileType);
     }
   }
 };
