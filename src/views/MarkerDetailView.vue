@@ -1,5 +1,11 @@
 <template>
   <v-container fluid v-if="marker">
+    <div
+      v-if="!imageLoaded"
+      style="position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);"
+    >
+      <v-progress-circular indeterminate size="56"></v-progress-circular>
+    </div>
     <v-dialog v-model="mem.dialog" max-width="500">
       <template v-slot:activator="{ on, attrs }">
         <v-btn
@@ -16,9 +22,9 @@
       <v-card class="pa-5" max-width="500">
         <v-card-title>
           <v-row justify="center">
-          <v-avatar v-for="(mem, i) in mems" :key="i" class="ma-3">
-            <img :src="mem.image" />
-          </v-avatar>
+            <v-avatar v-for="(mem, i) in mems" :key="i" class="ma-3">
+              <img :src="mem.image" />
+            </v-avatar>
           </v-row>
         </v-card-title>
       </v-card>
@@ -48,6 +54,7 @@
         <v-card-text>
           <v-textarea v-model="front" label="Front..." outlined />
           <v-textarea v-model="back" label="Back..." outlined />
+          <v-switch v-model="saveMem" label="Save Mem" />
           <v-autocomplete
             v-model="mem.selected"
             :items="mems"
@@ -64,7 +71,7 @@
             </template>
             <template v-slot:item="data">
               <v-row justify="center" class="my-3">
-                <img height="50" :src="data.item.image">
+                <img height="50" :src="data.item.image" />
               </v-row>
             </template>
           </v-autocomplete>
@@ -73,9 +80,7 @@
         <v-card-actions>
           <v-spacer />
           <v-btn
-            @click="
-              startOutline
-            "
+            @click="startOutline"
             text
             :color="isCreatePoints ? 'green' : 'default'"
             >Outline Mem Image</v-btn
@@ -154,10 +159,15 @@ export default {
     id: {
       type: String,
       required: true
+    },
+    imageIndex: {
+      type: String,
+      required: true
     }
   },
   data() {
     return {
+      imageLoaded: false,
       points: [],
       polygons: [],
       isCreatePoints: false,
@@ -165,7 +175,7 @@ export default {
       mem: {
         dialog: false,
         selected: [],
-        fabricImages: [],
+        fabricImages: []
       },
       comment: {
         dialog: false,
@@ -199,7 +209,7 @@ export default {
       }
     },
     mems() {
-      return Mem.all()
+      return Mem.all();
     },
     marker() {
       return Marker.query()
@@ -219,34 +229,35 @@ export default {
   },
   watch: {
     marker(val) {
-      if (!this.imageAdded && val && val.image) {
-        this.initCanvas(val.image);
-        this.url = val.image;
+      if (!this.imageAdded && val && val.images.length > this.imageIndex) {
+        const url = val.images[this.imageIndex];
+        this.initCanvas(url);
+        this.url = url;
         this.imageAdded = true;
       }
     }
   },
   methods: {
     addMem() {
-      this.dialog = true
-      this.clearPolygons()
-      this.removeFabricImages()
+      this.dialog = true;
+      this.clearPolygons();
+      this.removeFabricImages();
     },
     startOutline() {
       this.isCreateMem = true;
       this.dialog = false;
       this.mem.selected.forEach(mem => {
-        const image = new Image()
-        image.src = mem.image
+        const image = new Image();
+        image.src = mem.image;
         image.onload = () => {
-          const fImage = new fabric.Image(image)
+          const fImage = new fabric.Image(image);
           if (mem.width) {
-            fImage.scaleX = fImage.scaleY = this.canvasWidth / mem.width
+            fImage.scaleX = fImage.scaleY = this.canvasWidth / mem.width;
           }
-          this.mem.fabricImages = [...this.mem.fabricImages, { mem, fImage } ]
-          this.canvas.add(fImage)
-        }
-      })
+          this.mem.fabricImages = [...this.mem.fabricImages, { mem, fImage }];
+          this.canvas.add(fImage);
+        };
+      });
     },
     addPoint() {
       this.isCreatePoints = true;
@@ -254,7 +265,7 @@ export default {
     commentClick(comment) {
       this.comment.current = comment;
       this.clearPolygons();
-      this.removeFabricImages()
+      this.removeFabricImages();
       fabric.util.enlivenObjects(comment.polygons, enlivenedObjects => {
         enlivenedObjects.forEach(obj => {
           const scaleFactor = this.canvasWidth / comment.width;
@@ -276,19 +287,22 @@ export default {
         this.canvas.renderAll();
       });
       comment.mems.forEach(commentMem => {
-        const image = new Image()
-        image.src = commentMem.mem.image
+        const image = new Image();
+        image.src = commentMem.mem.image;
         image.onload = () => {
-          const fImage = new fabric.Image(image)
-          const scaleFactor = this.canvasWidth / comment.width
-          fImage.scaleX = fImage.scaleY = scaleFactor
-          fImage.top = commentMem.top * scaleFactor
-          fImage.left = commentMem.left * scaleFactor
-          fImage.selectable = false
-          this.mem.fabricImages = [...this.mem.fabricImages, { mem: commentMem.mem, fImage } ]
-          this.canvas.add(fImage)
-        }
-      })
+          const fImage = new fabric.Image(image);
+          const scaleFactor = this.canvasWidth / comment.width;
+          fImage.scaleX = fImage.scaleY = scaleFactor;
+          fImage.top = commentMem.top * scaleFactor;
+          fImage.left = commentMem.left * scaleFactor;
+          fImage.selectable = false;
+          this.mem.fabricImages = [
+            ...this.mem.fabricImages,
+            { mem: commentMem.mem, fImage }
+          ];
+          this.canvas.add(fImage);
+        };
+      });
     },
     initCanvas(url) {
       fabric.Image.fromURL(
@@ -312,6 +326,7 @@ export default {
           img.hoverCursor = "default";
 
           canvas.add(img);
+          this.imageLoaded = true;
           this.initCanvasEvents();
         },
         { crossOrigin: "Anonymous" }
@@ -349,9 +364,9 @@ export default {
       this.points = [];
     },
     removeFabricImages() {
-      this.mem.fabricImages.forEach(fi => this.canvas.remove(fi.fImage))
-      this.mem.fabricImage = []
-      this.canvas.renderAll()
+      this.mem.fabricImages.forEach(fi => this.canvas.remove(fi.fImage));
+      this.mem.fabricImage = [];
+      this.canvas.renderAll();
     },
     clearPolygons() {
       this.polygons.forEach(polygon => this.canvas.remove(polygon));
@@ -387,9 +402,9 @@ export default {
           left: fi.fImage.left,
           top: fi.fImage.top,
           width: fi.fImage.width,
-          height: fi.fImage.height,
-        }
-      })
+          height: fi.fImage.height
+        };
+      });
 
       Comment.put({
         markerId: this.id,
@@ -397,21 +412,26 @@ export default {
         back: this.back,
         polygons: this.polygons,
         width: this.canvasWidth,
-        mems,
+        mems
       });
 
       if (this.saveMem) {
         const obj = this.polygons[0];
-        const f = new fabric.StaticCanvas(null, { width: obj.width, height: obj.height });
-        const images = this.canvas.getObjects().filter(o => o.get("type") === "image");
+        const f = new fabric.StaticCanvas(null, {
+          width: obj.width,
+          height: obj.height
+        });
+        const images = this.canvas
+          .getObjects()
+          .filter(o => o.get("type") === "image");
 
         if (images.length > 0) {
           const image = images[0];
           let clonedImage = fabric.util.object.clone(image);
-          clonedImage.left = -1 * obj.left
-          clonedImage.top = -1 * obj.top
+          clonedImage.left = -1 * obj.left;
+          clonedImage.top = -1 * obj.top;
           f.add(clonedImage);
-          f.renderAll()
+          f.renderAll();
           clonedImage.clipPath = new fabric.Polygon(obj.get("points"), {
             left: 0,
             top: 0,
@@ -421,19 +441,19 @@ export default {
           });
 
           var mem = f.toDataURL({
-            format: "image/jpeg",
+            format: "image/jpeg"
           });
 
           Mem.put({
             marker_id: this.marker.id,
             width: this.canvasWidth,
-            image: mem,
-          })
+            image: mem
+          });
         }
       }
 
-      this.removeFabricImages()
-      this.mem = { dialog: false, selected: [], fabricImages: [] }
+      this.removeFabricImages();
+      this.mem = { dialog: false, selected: [], fabricImages: [] };
 
       this.clearPoints();
       this.clearPolygons();

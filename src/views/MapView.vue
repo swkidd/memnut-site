@@ -32,18 +32,20 @@
             @click="
               $router.push({
                 name: 'marker-detail',
-                params: { id: currentMarker.id }
+                params: { id: currentMarker.id, imageIndex: i }
               })
             "
           />
         </v-card-text>
         <v-card-actions>
-          <v-btn text @click="deleteDialog = true">
-            Delete Marker
-          </v-btn>
-          <v-btn text @click="showImageUpload(false)">
-            Add Image to Marker
-          </v-btn>
+          <v-row justify="center" class="flex-column">
+            <v-btn text @click="showImageUpload(false)">
+              Add Image to Marker
+            </v-btn>
+            <v-btn text color="warning" @click="deleteDialog = true">
+              Delete Marker
+            </v-btn>
+          </v-row>
         </v-card-actions>
       </v-card>
     </v-navigation-drawer>
@@ -156,7 +158,7 @@ export default {
         this.clickable = true;
         this.isMarkerImage = false;
       } else {
-        this.addImageToMarker(this.currentMarker)
+        this.addImageToMarker(this.currentMarker);
       }
     },
     keydown(e) {

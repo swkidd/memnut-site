@@ -10,7 +10,7 @@ const routes = [
     component: () => import('@/views/MapView')
   },
   {
-    path: '/:id',
+    path: '/:id/:imageIndex',
     name: 'marker-detail',
     component: () => import('@/views/MarkerDetailView'),
     props: true
