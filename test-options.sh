@@ -1,1 +1,0 @@
-curl -X OPTIONS https://v5g7mgbgs6.execute-api.ap-northeast-1.amazonaws.com/markers

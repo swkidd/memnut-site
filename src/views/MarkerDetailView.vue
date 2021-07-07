@@ -92,37 +92,44 @@
       <v-col cols="12" :md="hasComments ? 8 : 12">
         <canvas ref="can" :width="canvasWidth" :height="canvasHeight"></canvas>
       </v-col>
-      <v-col cols="12" md="4" class="my-3">
-        <v-card
-          v-for="(comment, i) in comments"
-          :key="i"
-          class="my-3 text-center"
-          style="max-width: 500px;"
-          width="100%"
-          @click="commentClick(comment)"
-        >
-          <v-card-title>
-            <v-list-item>
-              <v-list-item-avatar color="grey darken-3">
-                <v-img
-                  class="elevation-6"
-                  :src="comment.creator.picture"
-                ></v-img>
-              </v-list-item-avatar>
+      <v-col cols="12" md="4">
+        <v-item-group @change="commentClick($event)" multiple>
+          <v-item
+            v-slot="{ active, toggle }"
+            v-for="(comment, i) in comments"
+            :key="i"
+          >
+            <v-card
+              :color="active ? 'primary' : 'default'"
+              class="mb-3 text-center"
+              style="max-width: 500px;"
+              width="100%"
+              @click="toggle"
+            >
+              <v-card-title>
+                <v-list-item>
+                  <v-list-item-avatar color="grey darken-3">
+                    <v-img
+                      class="elevation-6"
+                      :src="comment.creator.picture"
+                    ></v-img>
+                  </v-list-item-avatar>
 
-              <v-list-item-content>
-                <v-list-item-title
-                  class="text-left"
-                  v-text="comment.creator.given_name"
-                />
-              </v-list-item-content>
-            </v-list-item>
-          </v-card-title>
+                  <v-list-item-content>
+                    <v-list-item-title
+                      class="text-left"
+                      v-text="comment.creator.given_name"
+                    />
+                  </v-list-item-content>
+                </v-list-item>
+              </v-card-title>
 
-          <v-card-text>
-            <div v-text="comment.front" />
-          </v-card-text>
-        </v-card>
+              <v-card-text>
+                <div v-text="comment.front" />
+              </v-card-text>
+            </v-card>
+          </v-item>
+        </v-item-group>
       </v-col>
     </v-row>
     <v-snackbar v-model="isCreateMem" timeout="-1" text>
@@ -222,7 +229,8 @@ export default {
         .where("markerId", this.id)
         .where("imageIndex", this.imageIndex)
         .withAllRecursive()
-        .get();
+        .get()
+        .sort((a, b) => a.order - b.order);
     },
     hasComments() {
       return this.comments.length > 0;
@@ -259,7 +267,7 @@ export default {
         image.src = mem.image;
         image.onload = () => {
           const fImage = new fabric.Image(image);
-          fImage.scaleToWidth(200)
+          fImage.scaleToWidth(200);
           this.mem.fabricImages = [...this.mem.fabricImages, { mem, fImage }];
           this.canvas.add(fImage);
         };
@@ -268,50 +276,54 @@ export default {
     addPoint() {
       this.isCreatePoints = true;
     },
-    commentClick(comment) {
-      this.comment.current = comment;
+    commentClick(commentIndices) {
       this.clearPolygons();
       this.removeFabricImages();
-      fabric.util.enlivenObjects(comment.polygons, enlivenedObjects => {
-        enlivenedObjects.forEach(obj => {
-          const scaleFactor = this.canvasWidth / comment.width;
-          obj.left = obj.left * scaleFactor;
-          obj.top = obj.top * scaleFactor;
-          obj.scaleX = obj.scaleY = scaleFactor;
+      commentIndices.forEach(commentIndex => {
+        const comment = this.comments[commentIndex]
+        fabric.util.enlivenObjects(comment.polygons, enlivenedObjects => {
+          enlivenedObjects.forEach(obj => {
+            const scaleFactor = this.canvasWidth / comment.width;
+            obj.left = obj.left * scaleFactor;
+            obj.top = obj.top * scaleFactor;
+            obj.scaleX = obj.scaleY = scaleFactor;
 
-          obj.selectable = false;
-          obj.hoverCursor = "pointer";
+            obj.selectable = false;
+            obj.hoverCursor = "pointer";
 
-          obj.on("mouseup", () => {
-            this.comment.dialog = true;
+            obj.on("mouseup", () => {
+              this.comment.current = comment;
+              this.comment.dialog = true;
+            });
+
+            this.polygons = [...this.polygons, obj];
+
+            this.canvas.add(obj);
           });
-
-          this.polygons = [...this.polygons, obj];
-
-          this.canvas.add(obj);
+          this.canvas.renderAll();
         });
-        this.canvas.renderAll();
-      });
-      comment.mems.forEach(commentMem => {
-        const image = new Image();
-        image.src = commentMem.mem.image;
-        image.onload = () => {
-          const fImage = new fabric.Image(image);
-          const scaleFactor = this.canvasWidth / comment.width;
-          fImage.top = commentMem.top * scaleFactor;
-          fImage.left = commentMem.left * scaleFactor;
-          fImage.scaleX = commentMem.scaleX * scaleFactor;
-          fImage.scaleY = commentMem.scaleY * scaleFactor;
-          fImage.selectable = false;
-          fImage.on("mouseup", () => {
-            this.comment.dialog = true;
-          });
-          this.mem.fabricImages = [
-            ...this.mem.fabricImages,
-            { mem: commentMem.mem, fImage }
-          ];
-          this.canvas.add(fImage);
-        };
+        comment.mems.forEach(commentMem => {
+          const image = new Image();
+          image.src = commentMem.mem.image;
+          image.onload = () => {
+            const fImage = new fabric.Image(image);
+            const scaleFactor = this.canvasWidth / comment.width;
+            fImage.top = commentMem.top * scaleFactor;
+            fImage.left = commentMem.left * scaleFactor;
+            fImage.scaleX = commentMem.scaleX * scaleFactor;
+            fImage.scaleY = commentMem.scaleY * scaleFactor;
+            fImage.selectable = false;
+            fImage.on("mouseup", () => {
+              this.comment.current = comment;
+              this.comment.dialog = true;
+            });
+            this.mem.fabricImages = [
+              ...this.mem.fabricImages,
+              { mem: commentMem.mem, fImage }
+            ];
+            this.canvas.add(fImage);
+          };
+        });
       });
     },
     initCanvas(url) {
@@ -322,9 +334,9 @@ export default {
 
           this.canvasWidth = this.getWidth;
           this.canvasHeight = img.height * (this.getWidth / img.width);
-          if (this.canvasHeight > this.$vuetify.breakpoint.height) {
-            this.canvasHeight = this.$vuetify.breakpoint.height
-          }
+          // if (this.canvasHeight > this.$vuetify.breakpoint.height) {
+          //   this.canvasHeight = this.$vuetify.breakpoint.height;
+          // }
 
           const canvas = new fabric.Canvas(ref, {
             width: this.canvasWidth,
@@ -335,7 +347,6 @@ export default {
           this.canvas = canvas;
 
           img.scaleToWidth(this.canvasWidth);
-          img.scaleToHeight(this.canvasHeight);
           img.selectable = false;
           img.hoverCursor = "default";
 
@@ -404,7 +415,7 @@ export default {
     submit() {
       if (this.front === "" || this.back === "") return;
 
-      let polygons = []
+      let polygons = [];
       if (this.points.length > 2) {
         this.createPolygon();
         polygons = this.polygons;
@@ -416,11 +427,12 @@ export default {
           left: fi.fImage.left,
           top: fi.fImage.top,
           scaleX: fi.fImage.scaleX,
-          scaleY: fi.fImage.scaleY,
+          scaleY: fi.fImage.scaleY
         };
       });
 
       Comment.put({
+        order: this.comments.length + 1,
         markerId: this.id,
         imageIndex: this.imageIndex,
         front: this.front,
@@ -461,7 +473,7 @@ export default {
 
           fetch(memImage)
             .then(r => r.blob())
-            .then(blob => Mem.uploadMem(this.marker, blob))
+            .then(blob => Mem.uploadMem(this.marker, blob));
         }
       }
 

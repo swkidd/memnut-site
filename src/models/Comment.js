@@ -9,6 +9,7 @@ export default class Comment extends Model {
   static fields() {
     return {
       id: this.attr(null),
+      order: this.attr(null),
       markerId: this.attr(null),
       imageIndex: this.attr(null),
       creator_id: this.attr(null),
