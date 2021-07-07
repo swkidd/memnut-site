@@ -202,12 +202,11 @@ export default {
   },
   computed: {
     getWidth() {
-      return this.$vuetify.breakpoint.width * (6 / 12) - 30;
-      // if (!this.hasComments || this.$vuetify.breakpoint.mobile) {
-      //   return this.$vuetify.breakpoint.width * (6 / 12) - 30;
-      // } else {
-      //   return this.$vuetify.breakpoint.width * (6 / 12) - 20;
-      // }
+      if (!this.hasComments || this.$vuetify.breakpoint.mobile) {
+        return this.$vuetify.breakpoint.width - 30;
+      } else {
+        return this.$vuetify.breakpoint.width * (8 / 12) - 20;
+      }
     },
     mems() {
       return Mem.all();
@@ -230,6 +229,13 @@ export default {
     }
   },
   watch: {
+    // '$vuetify.breakpoint.width' () {
+    //   this.canvasWidth = this.getWidth
+    //   const scaleRatio = this.canvasWidth / this.canvas.getWidth();
+    //   this.canvas.setWidth(this.canvasWidth)
+    //   this.canvas.setZoom(scaleRatio)
+    //   this.canvas.renderAll()
+    // },
     marker(val) {
       if (!this.imageAdded && val && val.images.length > this.imageIndex) {
         const url = val.images[this.imageIndex];
@@ -291,10 +297,11 @@ export default {
         image.src = commentMem.mem.image;
         image.onload = () => {
           const fImage = new fabric.Image(image);
-          fImage.top = commentMem.top;
-          fImage.left = commentMem.left;
-          fImage.scaleX = commentMem.scaleX;
-          fImage.scaleY = commentMem.scaleY;
+          const scaleFactor = this.canvasWidth / comment.width;
+          fImage.top = commentMem.top * scaleFactor;
+          fImage.left = commentMem.left * scaleFactor;
+          fImage.scaleX = commentMem.scaleX * scaleFactor;
+          fImage.scaleY = commentMem.scaleY * scaleFactor;
           fImage.selectable = false;
           fImage.on("mouseup", () => {
             this.comment.dialog = true;
@@ -315,6 +322,9 @@ export default {
 
           this.canvasWidth = this.getWidth;
           this.canvasHeight = img.height * (this.getWidth / img.width);
+          if (this.canvasHeight > this.$vuetify.breakpoint.height) {
+            this.canvasHeight = this.$vuetify.breakpoint.height
+          }
 
           const canvas = new fabric.Canvas(ref, {
             width: this.canvasWidth,
@@ -325,6 +335,7 @@ export default {
           this.canvas = canvas;
 
           img.scaleToWidth(this.canvasWidth);
+          img.scaleToHeight(this.canvasHeight);
           img.selectable = false;
           img.hoverCursor = "default";
 

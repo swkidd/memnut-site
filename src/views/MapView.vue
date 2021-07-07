@@ -26,7 +26,7 @@
           <v-img
             v-for="(image, i) in currentMarker.images"
             :key="i"
-            height="250"
+            max-height="250"
             class="ma-5"
             :src="image"
             @click="openDetailPage(currentMarker.id, i)"
