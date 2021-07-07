@@ -33,6 +33,12 @@
       <v-card v-if="comment.current" outlined>
         <v-card-title v-text="comment.current.front" />
         <v-card-text v-text="comment.current.back" />
+        <v-card-actions v-if="comment.mem">
+          <v-spacer />
+          <v-btn text @click="goToMem(comment.mem)">
+            Go to Mem
+          </v-btn>
+        </v-card-actions>
       </v-card>
     </v-dialog>
     <v-dialog v-model="dialog" max-width="500">
@@ -186,7 +192,8 @@ export default {
       },
       comment: {
         dialog: false,
-        current: null
+        current: null,
+        mem: null
       },
       saveMem: true,
       canvas: null,
@@ -254,6 +261,13 @@ export default {
     }
   },
   methods: {
+    goToMem(mem) {
+      const routeData = this.$router.resolve({
+        name: "marker-detail",
+        params: { id: mem.marker_id, imageIndex: mem.image_index }
+      });
+      window.open(routeData.href, "_blank");
+    },
     addMem() {
       this.dialog = true;
       this.clearPolygons();
@@ -280,7 +294,7 @@ export default {
       this.clearPolygons();
       this.removeFabricImages();
       commentIndices.forEach(commentIndex => {
-        const comment = this.comments[commentIndex]
+        const comment = this.comments[commentIndex];
         fabric.util.enlivenObjects(comment.polygons, enlivenedObjects => {
           enlivenedObjects.forEach(obj => {
             const scaleFactor = this.canvasWidth / comment.width;
@@ -316,6 +330,7 @@ export default {
             fImage.on("mouseup", () => {
               this.comment.current = comment;
               this.comment.dialog = true;
+              this.comment.mem = commentMem.mem;
             });
             this.mem.fabricImages = [
               ...this.mem.fabricImages,

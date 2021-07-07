@@ -16,6 +16,7 @@ export default class Mem extends Model {
       creator_id: this.attr(null),
       creator: this.belongsTo(User, "creator_id"),
       marker_id: this.attr(null),
+      image_index: this.attr(null),
       marker: this.belongsTo(Marker, "marker_id"),
       image: this.attr(null)
     };
