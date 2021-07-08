@@ -3,6 +3,7 @@ import Vuex from 'vuex'
 import VuexORM from '@vuex-orm/core'
 import User from '@/models/User'
 import Marker from '@/models/Marker'
+import Memage from '@/models/Memage'
 import Mem from '@/models/Mem'
 import Comment from '@/models/Comment'
 import CommentMem from '@/models/CommentMem'
@@ -15,6 +16,7 @@ const database = new VuexORM.Database()
 // Register Models to Database.
 database.register(User)
 database.register(Marker)
+database.register(Memage)
 database.register(Mem)
 database.register(Comment)
 database.register(CommentMem)

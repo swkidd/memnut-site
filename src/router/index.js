@@ -10,6 +10,11 @@ const routes = [
     component: () => import('@/views/MapView')
   },
   {
+    path: '/mems',
+    name: 'mems',
+    component: () => import('@/views/MemView')
+  },
+  {
     path: '/:id/:imageIndex',
     name: 'marker-detail',
     component: () => import('@/views/MarkerDetailView'),
@@ -21,6 +26,12 @@ const routes = [
       const id = route.params.id
       return { id, imageIndex }
     }
+  },
+  {
+    path: '/:id',
+    name: 'memage-detail',
+    component: () => import('@/views/MemageDetailView'),
+    props: true,
   },
 ]
 
