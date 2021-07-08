@@ -1,8 +1,8 @@
 import { Model } from "@vuex-orm/core";
 import Mem from "@/models/Mem";
 
-export default class CommentMem extends Model {
-  static entity = "commentmems";
+export default class MarkerMem extends Model {
+  static entity = "markermems";
 
   static fields() {
     return {

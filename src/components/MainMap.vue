@@ -50,7 +50,7 @@
       >
         <v-img
           :contain="true"
-          :src="marker.images.length ? marker.images[0] : ''"
+          :src="marker.image"
           width="75"
           aspect-ratio="1"
           class="ma-3"

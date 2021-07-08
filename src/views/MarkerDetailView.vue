@@ -165,7 +165,6 @@
 import { fabric } from "fabric";
 import Marker from "@/models/Marker";
 import Mem from "@/models/Mem";
-import Comment from "@/models/Comment";
 export default {
   name: "MarkerDetailView",
   props: {
@@ -212,7 +211,6 @@ export default {
     }
     Mem.fetch();
     Marker.fetch();
-    Comment.fetchById(this.id);
   },
   computed: {
     getWidth() {
@@ -232,12 +230,7 @@ export default {
         .first();
     },
     comments() {
-      return Comment.query()
-        .where("markerId", this.id)
-        .where("imageIndex", this.imageIndex)
-        .withAllRecursive()
-        .get()
-        .sort((a, b) => a.order - b.order);
+      return []
     },
     hasComments() {
       return this.comments.length > 0;
@@ -436,26 +429,26 @@ export default {
         polygons = this.polygons;
       }
 
-      const mems = this.mem.fabricImages.map(fi => {
-        return {
-          mem_id: fi.mem.id,
-          left: fi.fImage.left,
-          top: fi.fImage.top,
-          scaleX: fi.fImage.scaleX,
-          scaleY: fi.fImage.scaleY
-        };
-      });
+      // const mems = this.mem.fabricImages.map(fi => {
+      //   return {
+      //     mem_id: fi.mem.id,
+      //     left: fi.fImage.left,
+      //     top: fi.fImage.top,
+      //     scaleX: fi.fImage.scaleX,
+      //     scaleY: fi.fImage.scaleY
+      //   };
+      // });
 
-      Comment.put({
-        order: this.comments.length + 1,
-        markerId: this.id,
-        imageIndex: this.imageIndex,
-        front: this.front,
-        back: this.back,
-        polygons,
-        width: this.canvasWidth,
-        mems
-      });
+      // Comment.put({
+      //   order: this.comments.length + 1,
+      //   markerId: this.id,
+      //   imageIndex: this.imageIndex,
+      //   front: this.front,
+      //   back: this.back,
+      //   polygons,
+      //   width: this.canvasWidth,
+      //   mems
+      // });
 
       if (polygons.length > 0 && this.saveMem) {
         const obj = this.polygons[0];

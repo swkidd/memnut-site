@@ -30,36 +30,34 @@ export default class Memage extends Model {
           }),
         }
       )
-        .then(response => response.json())
-        .then(resp => {
-          if (!resp.Items) return
-          resp.Items.forEach(data => {
-            if (data.image_keys) {
-              data.image_keys.forEach(image_key => {
-                fetch(
-                  "https://v5g7mgbgs6.execute-api.ap-northeast-1.amazonaws.com/api/download",
-                  {
-                    method: "POST",
-                    headers: new Headers({
-                      Authorization: accessToken,
-                      "Content-Type": "application/json",
-                    }),
-                    body: JSON.stringify({ key: image_key }),
-                  }
-                )
-                  .then(response => response.json())
-                  .then(urlData =>
-                    Memage.insert({
-                      data: {
-                        id: data.id,
-                        creator: data.creator,
-                        image: urlData.data,
-                      },
-                    })
-                  );
-              })
+        .then((response) => response.json())
+        .then((resp) => {
+          if (!resp.Items) return;
+          resp.Items.forEach((data) => {
+            if (data.image_key) {
+              fetch(
+                "https://v5g7mgbgs6.execute-api.ap-northeast-1.amazonaws.com/api/download",
+                {
+                  method: "POST",
+                  headers: new Headers({
+                    Authorization: accessToken,
+                    "Content-Type": "application/json",
+                  }),
+                  body: JSON.stringify({ key: data.image_key }),
+                }
+              )
+                .then((response) => response.json())
+                .then((urlData) =>
+                  Memage.insert({
+                    data: {
+                      id: data.id,
+                      creator: data.creator,
+                      image: urlData.data,
+                    },
+                  })
+                );
             }
-          })
+          });
         });
     }
   }
@@ -102,7 +100,7 @@ export default class Memage extends Model {
     }
   }
 
-  static async uploadMemage(image, fileType) {
+  static async uploadMemage(memage, image, fileType) {
     const accessToken = sessionStorage.getItem("access_token");
     if (accessToken) {
       let response = await fetch(
@@ -126,6 +124,23 @@ export default class Memage extends Model {
 
       response = await fetch(json.data.url, { method: "POST", body: form });
       if (!response.ok) return "Failed to upload via presigned POST";
+      
+      const imageKey = json.data.fields["x-amz-meta-imageKey"]
+      memage.image_key = imageKey
+
+      response = await fetch(
+        "https://v5g7mgbgs6.execute-api.ap-northeast-1.amazonaws.com/api/mems",
+        {
+          method: "PUT",
+          headers: new Headers({
+            Authorization: accessToken,
+            "Content-Type": "application/json",
+          }),
+          body: JSON.stringify(memage),
+        }
+      );
+      json = await response.json();
+      Memage.insert({ data: memage })
 
       setTimeout(() => {
         Memage.deleteAll();

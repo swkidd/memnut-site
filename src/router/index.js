@@ -27,12 +27,6 @@ const routes = [
       return { id, imageIndex }
     }
   },
-  {
-    path: '/:id',
-    name: 'memage-detail',
-    component: () => import('@/views/MemageDetailView'),
-    props: true,
-  },
 ]
 
 const router = new VueRouter({

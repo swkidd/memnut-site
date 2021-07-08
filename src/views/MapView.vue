@@ -24,11 +24,9 @@
       <v-card v-if="currentMarker" class="mx-auto my-12" elevation="0">
         <v-card-text>
           <v-img
-            v-for="(image, i) in currentMarker.images"
-            :key="i"
             max-height="250"
             class="ma-5"
-            :src="image"
+            :src="currentMarker.image"
             @click="openDetailPage(currentMarker.id, i)"
           />
         </v-card-text>
@@ -160,7 +158,7 @@ export default {
         this.clickable = true;
         this.isMarkerImage = false;
       } else {
-        this.addImageToMarker(this.currentMarker);
+        // this.addImageToMarker(this.currentMarker);
       }
     },
     keydown(e) {
@@ -173,7 +171,7 @@ export default {
       if (this.clickable) {
         const marker = {
           latlng: e.latlng,
-          images: [this.image]
+          image: this.image
         };
         Marker.uploadMarker(marker, this.fileType);
         this.image = { trigger: false };
