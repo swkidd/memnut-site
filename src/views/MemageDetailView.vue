@@ -216,9 +216,11 @@ export default {
       }
     },
     mems() {
+      console.log(Mem.all())
       return Mem
         .query()
         .with('creator')
+        .where('memage_id', this.id)
         .get();
     },
     hasMems() {

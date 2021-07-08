@@ -52,17 +52,7 @@ export default class Mem extends Model {
                 .then((response) => response.json())
                 .then((urlData) => {
                   Mem.insert({
-                    data: {
-                      id: data.id,
-                      creator: data.creator,
-                      order: data.order,
-                      front: data.front,
-                      back: data.back,
-                      width: data.width,
-                      polygon: data.polygon,
-                      latlng: data.latlng,
-                      image: urlData.data,
-                    },
+                    data: { image: urlData.data, ...data },
                   });
                 });
             }
