@@ -124,8 +124,8 @@ export default class Marker extends Model {
 
       response = await fetch(json.data.url, { method: "POST", body: form });
       if (!response.ok) return "Failed to upload via presigned POST";
-      
-      const imageKey = json.data.fields["x-amz-meta-imageKey"]
+
+      const imageKey = json.data.fields["x-amz-meta-imagekey"]
       marker.image_key = imageKey
 
       response = await fetch(

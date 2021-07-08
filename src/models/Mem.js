@@ -26,7 +26,7 @@ export default class Mem extends Model {
     const accessToken = sessionStorage.getItem("access_token");
     if (accessToken) {
       fetch(
-        "https://v5g7mgbgs6.execute-api.ap-northeast-1.amazonaws.com/api/mem",
+        "https://v5g7mgbgs6.execute-api.ap-northeast-1.amazonaws.com/api/mems",
         {
           headers: new Headers({
             Authorization: accessToken,
@@ -75,7 +75,7 @@ export default class Mem extends Model {
     const accessToken = sessionStorage.getItem("access_token");
     if (accessToken) {
       fetch(
-        `https://v5g7mgbgs6.execute-api.ap-northeast-1.amazonaws.com/api/mem/${id}`,
+        `https://v5g7mgbgs6.execute-api.ap-northeast-1.amazonaws.com/api/mems/${id}`,
         {
           headers: new Headers({
             Authorization: accessToken,
@@ -112,8 +112,8 @@ export default class Mem extends Model {
 
       response = await fetch(json.data.url, { method: "POST", body: form });
       if (!response.ok) return "Failed to upload via presigned POST";
-      
-      const imageKey = json.data.fields["x-amz-meta-imageKey"]
+
+      const imageKey = json.data.fields["x-amz-meta-imagekey"]
       mem.image_key = imageKey
 
       response = await fetch(
@@ -127,8 +127,8 @@ export default class Mem extends Model {
           body: JSON.stringify(mem),
         }
       );
-      json = await response.json();
-      Mem.insert({ data: mem})
+      const newMem = await response.json();
+      Mem.insert({ data: newMem })
 
       setTimeout(() => {
         Mem.deleteAll();

@@ -21,7 +21,7 @@
               class="d-flex child-flex"
               cols="4"
             >
-              <v-card flat tile class="d-flex">
+              <v-card flat tile class="d-flex" @click="goToMemage(mem.id)">
                 <v-img
                   :src="mem.image"
                   height="250"
@@ -67,6 +67,13 @@ export default {
     },
   },
   methods: {
+    goToMemage(id) {
+      const routeData = this.$router.resolve({
+        name: "memage-detail",
+        params: { id }
+      });
+      window.open(routeData.href, "_blank");
+    },
     openFileDialog() {
       this.$refs.imageUpload.$refs.input.click();
     },

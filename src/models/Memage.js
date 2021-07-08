@@ -100,7 +100,7 @@ export default class Memage extends Model {
     }
   }
 
-  static async uploadMemage(memage, image, fileType) {
+  static async uploadMemage(image, fileType) {
     const accessToken = sessionStorage.getItem("access_token");
     if (accessToken) {
       let response = await fetch(
@@ -124,22 +124,22 @@ export default class Memage extends Model {
 
       response = await fetch(json.data.url, { method: "POST", body: form });
       if (!response.ok) return "Failed to upload via presigned POST";
-      
-      const imageKey = json.data.fields["x-amz-meta-imageKey"]
-      memage.image_key = imageKey
+
+      const imageKey = json.data.fields["x-amz-meta-imagekey"]
+      console.log(imageKey)
 
       response = await fetch(
-        "https://v5g7mgbgs6.execute-api.ap-northeast-1.amazonaws.com/api/mems",
+        "https://v5g7mgbgs6.execute-api.ap-northeast-1.amazonaws.com/api/memages",
         {
           method: "PUT",
           headers: new Headers({
             Authorization: accessToken,
             "Content-Type": "application/json",
           }),
-          body: JSON.stringify(memage),
+          body: JSON.stringify({ image_key: imageKey }),
         }
       );
-      json = await response.json();
+      const memage = await response.json();
       Memage.insert({ data: memage })
 
       setTimeout(() => {

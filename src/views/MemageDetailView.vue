@@ -1,5 +1,5 @@
 <template>
-  <v-container fluid v-if="marker">
+  <v-container fluid v-if="memage">
     <div
       v-if="!imageLoaded"
       style="position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);"
@@ -60,8 +60,8 @@
         <v-card-text>
           <v-textarea v-model="front" label="Front..." outlined />
           <v-textarea v-model="back" label="Back..." outlined />
-          <v-switch v-model="saveMem" label="Save Mem" />
-          <v-autocomplete
+          <v-switch v-model="mem.wholeImage" label="Use Whole Image" />
+          <!-- <v-autocomplete
             v-model="mem.selected"
             :items="mems"
             item-text="id"
@@ -80,7 +80,7 @@
                 <img height="50" :src="data.item.image" />
               </v-row>
             </template>
-          </v-autocomplete>
+          </v-autocomplete> -->
         </v-card-text>
         <v-divider />
         <v-card-actions>
@@ -95,14 +95,14 @@
       </v-card>
     </v-dialog>
     <v-row justify="center">
-      <v-col cols="12" :md="hasComments ? 8 : 12">
+      <v-col cols="12" :md="hasMems ? 8 : 12">
         <canvas ref="can" :width="canvasWidth" :height="canvasHeight"></canvas>
       </v-col>
       <v-col cols="12" md="4">
         <v-item-group @change="commentClick($event)" multiple>
           <v-item
             v-slot="{ active, toggle }"
-            v-for="(comment, i) in comments"
+            v-for="(comment, i) in mems"
             :key="i"
           >
             <v-card
@@ -163,38 +163,33 @@
 
 <script>
 import { fabric } from "fabric";
-import Marker from "@/models/Marker";
+import Memage from "@/models/Memage";
 import Mem from "@/models/Mem";
 export default {
-  name: "MarkerDetailView",
+  name: "MemageDetailView",
   props: {
     id: {
       type: String,
-      required: true
+      required: true,
     },
-    imageIndex: {
-      type: Number,
-      required: true
-    }
   },
   data() {
     return {
       imageLoaded: false,
       points: [],
-      polygons: [],
+      polygon: null,
       isCreatePoints: false,
       isCreateMem: false,
       mem: {
         dialog: false,
+        wholeImage: false,
         selected: [],
-        fabricImages: []
+        fabricImages: [],
       },
       comment: {
         dialog: false,
         current: null,
-        mem: null
       },
-      saveMem: true,
       canvas: null,
       url: null,
       imageAdded: false,
@@ -202,7 +197,7 @@ export default {
       back: "",
       dialog: false,
       canvasWidth: 0,
-      canvasHeight: 0
+      canvasHeight: 0,
     };
   },
   mounted() {
@@ -210,31 +205,31 @@ export default {
       this.id = this.$router.params.id;
     }
     Mem.fetch();
-    Marker.fetch();
+    Memage.fetch();
   },
   computed: {
     getWidth() {
-      if (!this.hasComments || this.$vuetify.breakpoint.mobile) {
+      if (!this.hasMems || this.$vuetify.breakpoint.mobile) {
         return this.$vuetify.breakpoint.width - 30;
       } else {
         return this.$vuetify.breakpoint.width * (8 / 12) - 20;
       }
     },
     mems() {
-      return Mem.all();
+      return Mem
+        .query()
+        .with('creator')
+        .get();
     },
-    marker() {
-      return Marker.query()
+    hasMems() {
+      return this.mems.length > 0;
+    },
+    memage() {
+      return Memage.query()
         .where("id", this.id)
         .with("creator")
         .first();
     },
-    comments() {
-      return []
-    },
-    hasComments() {
-      return this.comments.length > 0;
-    }
   },
   watch: {
     // '$vuetify.breakpoint.width' () {
@@ -244,32 +239,31 @@ export default {
     //   this.canvas.setZoom(scaleRatio)
     //   this.canvas.renderAll()
     // },
-    marker(val) {
-      if (!this.imageAdded && val && val.images.length > this.imageIndex) {
-        const url = val.images[this.imageIndex];
+    memage(val) {
+      if (!this.imageAdded && val && val.image) {
+        const url = val.image;
         this.initCanvas(url);
         this.url = url;
         this.imageAdded = true;
       }
-    }
+    },
   },
   methods: {
     goToMem(mem) {
       const routeData = this.$router.resolve({
-        name: "marker-detail",
-        params: { id: mem.marker_id, imageIndex: mem.image_index }
+        name: "memage-detail",
+        params: { id: mem.memage_id },
       });
       window.open(routeData.href, "_blank");
     },
     addMem() {
       this.dialog = true;
-      this.clearPolygons();
       this.removeFabricImages();
     },
     startOutline() {
       this.isCreateMem = true;
       this.dialog = false;
-      this.mem.selected.forEach(mem => {
+      this.mem.selected.forEach((mem) => {
         const image = new Image();
         image.src = mem.image;
         image.onload = () => {
@@ -284,12 +278,11 @@ export default {
       this.isCreatePoints = true;
     },
     commentClick(commentIndices) {
-      this.clearPolygons();
       this.removeFabricImages();
-      commentIndices.forEach(commentIndex => {
-        const comment = this.comments[commentIndex];
-        fabric.util.enlivenObjects(comment.polygons, enlivenedObjects => {
-          enlivenedObjects.forEach(obj => {
+      commentIndices.forEach((commentIndex) => {
+        const comment = this.mems[commentIndex];
+        fabric.util.enlivenObjects([comment.polygon], (enlivenedObjects) => {
+          enlivenedObjects.forEach((obj) => {
             const scaleFactor = this.canvasWidth / comment.width;
             obj.left = obj.left * scaleFactor;
             obj.top = obj.top * scaleFactor;
@@ -303,41 +296,41 @@ export default {
               this.comment.dialog = true;
             });
 
-            this.polygons = [...this.polygons, obj];
+            this.polygon = obj;
 
             this.canvas.add(obj);
           });
           this.canvas.renderAll();
         });
-        comment.mems.forEach(commentMem => {
-          const image = new Image();
-          image.src = commentMem.mem.image;
-          image.onload = () => {
-            const fImage = new fabric.Image(image);
-            const scaleFactor = this.canvasWidth / comment.width;
-            fImage.top = commentMem.top * scaleFactor;
-            fImage.left = commentMem.left * scaleFactor;
-            fImage.scaleX = commentMem.scaleX * scaleFactor;
-            fImage.scaleY = commentMem.scaleY * scaleFactor;
-            fImage.selectable = false;
-            fImage.on("mouseup", () => {
-              this.comment.current = comment;
-              this.comment.dialog = true;
-              this.comment.mem = commentMem.mem;
-            });
-            this.mem.fabricImages = [
-              ...this.mem.fabricImages,
-              { mem: commentMem.mem, fImage }
-            ];
-            this.canvas.add(fImage);
-          };
-        });
+        // comment.mems.forEach(commentMem => {
+        //   const image = new Image();
+        //   image.src = commentMem.mem.image;
+        //   image.onload = () => {
+        //     const fImage = new fabric.Image(image);
+        //     const scaleFactor = this.canvasWidth / comment.width;
+        //     fImage.top = commentMem.top * scaleFactor;
+        //     fImage.left = commentMem.left * scaleFactor;
+        //     fImage.scaleX = commentMem.scaleX * scaleFactor;
+        //     fImage.scaleY = commentMem.scaleY * scaleFactor;
+        //     fImage.selectable = false;
+        //     fImage.on("mouseup", () => {
+        //       this.comment.current = comment;
+        //       this.comment.dialog = true;
+        //       this.comment.mem = commentMem.mem;
+        //     });
+        //     this.mem.fabricImages = [
+        //       ...this.mem.fabricImages,
+        //       { mem: commentMem.mem, fImage }
+        //     ];
+        //     this.canvas.add(fImage);
+        //   };
+        // });
       });
     },
     initCanvas(url) {
       fabric.Image.fromURL(
         url,
-        img => {
+        (img) => {
           const ref = this.$refs.can;
 
           this.canvasWidth = this.getWidth;
@@ -350,7 +343,7 @@ export default {
             width: this.canvasWidth,
             height: this.canvasHeight,
             preserveObjectStacking: true,
-            allowTouchScrolling: true
+            allowTouchScrolling: true,
           });
           this.canvas = canvas;
 
@@ -367,7 +360,7 @@ export default {
     },
     initCanvasEvents() {
       this.canvas.on({
-        "mouse:up": event => {
+        "mouse:up": (event) => {
           if (!this.isCreatePoints) return;
           var pointer = this.canvas.getPointer(event.e);
           var positionX = pointer.x;
@@ -383,51 +376,43 @@ export default {
             originY: "center",
             hoverCursor: "auto",
             strokeWidth: "2",
-            stroke: "black"
+            stroke: "black",
           });
           this.canvas.add(circlePoint);
           this.points = [...this.points, circlePoint];
           this.canvas.bringToFront(circlePoint);
           this.isCreatePoints = false;
-        }
+        },
       });
     },
     clearPoints() {
-      this.points.forEach(point => this.canvas.remove(point));
+      this.points.forEach((point) => this.canvas.remove(point));
       this.points = [];
     },
     removeFabricImages() {
-      this.mem.fabricImages.forEach(fi => this.canvas.remove(fi.fImage));
+      this.mem.fabricImages.forEach((fi) => this.canvas.remove(fi.fImage));
       this.mem.fabricImages = [];
       this.canvas.renderAll();
-    },
-    clearPolygons() {
-      this.polygons.forEach(polygon => this.canvas.remove(polygon));
-      this.polygons = [];
     },
     createPolygon() {
       this.points = [...this.points, fabric.util.object.clone(this.points[0])];
       var poly = new fabric.Polygon(
-        this.points.map(point => point.getCenterPoint()),
+        this.points.map((point) => point.getCenterPoint()),
         {
           stroke: "black",
           strokeWidth: "5",
           fill: "transparent",
-          selectable: false
+          selectable: false,
         }
       );
       this.clearPoints();
       this.canvas.add(poly);
-      this.polygons = [...this.polygons, poly];
+      this.polygon = poly;
     },
     submit() {
       if (this.front === "" || this.back === "") return;
-
-      let polygons = [];
-      if (this.points.length > 2) {
-        this.createPolygon();
-        polygons = this.polygons;
-      }
+      if (!this.points.length > 2) return;
+      this.createPolygon();
 
       // const mems = this.mem.fabricImages.map(fi => {
       //   return {
@@ -450,15 +435,15 @@ export default {
       //   mems
       // });
 
-      if (polygons.length > 0 && this.saveMem) {
-        const obj = this.polygons[0];
+      if (this.polygon && !this.mem.wholeImage) {
+        const obj = this.polygon;
         const f = new fabric.StaticCanvas(null, {
           width: obj.width,
-          height: obj.height
+          height: obj.height,
         });
         const images = this.canvas
           .getObjects()
-          .filter(o => o.get("type") === "image");
+          .filter((o) => o.get("type") === "image");
 
         if (images.length > 0) {
           const image = images[0];
@@ -472,16 +457,25 @@ export default {
             top: 0,
             scaleX: obj.scaleX,
             scaleY: obj.scaleY,
-            absolutePositioned: true
+            absolutePositioned: true,
           });
 
           const memImage = f.toDataURL({
-            format: "image/webp"
+            format: "image/webp",
           });
 
+          const mem = {
+            order: this.memage.mem_ids.length + 1,
+            memage_id: this.memage.id,
+            front: this.front,
+            back: this.back,
+            width: this.canvasWidth,
+            polygon: this.polygon,
+          };
+
           fetch(memImage)
-            .then(r => r.blob())
-            .then(blob => Mem.uploadMem(this.marker, blob));
+            .then((r) => r.blob())
+            .then((blob) => Mem.uploadMem(mem, blob));
         }
       }
 
@@ -489,24 +483,17 @@ export default {
       this.mem = { dialog: false, selected: [], fabricImages: [] };
 
       this.clearPoints();
-      this.clearPolygons();
       this.front = "";
       this.back = "";
       this.isCreatePoints = false;
       this.isCreateMem = false;
-      // if (this.comments.length === 1) {
-      //   setTimeout(() => {
-      //     this.$router.go();
-      //   }, 1000);
-      // }
     },
     cancel() {
       this.clearPoints();
-      this.clearPolygons();
       this.isCreatePoints = false;
       this.isCreateMem = false;
-    }
-  }
+    },
+  },
 };
 </script>
 

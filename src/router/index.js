@@ -15,17 +15,10 @@ const routes = [
     component: () => import('@/views/MemView')
   },
   {
-    path: '/:id/:imageIndex',
-    name: 'marker-detail',
-    component: () => import('@/views/MarkerDetailView'),
-    props: (route) => {
-      const imageIndex = Number.parseInt(route.params.imageIndex)
-      if (Number.isNaN(imageIndex)) {
-        return 0
-      }
-      const id = route.params.id
-      return { id, imageIndex }
-    }
+    path: '/:id',
+    name: 'memage-detail',
+    component: () => import('@/views/MemageDetailView'),
+    props: true,
   },
 ]
 
