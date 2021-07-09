@@ -1,6 +1,6 @@
 <template>
   <div class="text-center fill-height" style="overflow: hidden;">
-    <v-dialog v-model="addMemDialog" width="100%" height="100%" scrollable>
+    <v-dialog v-model="addMemDialog" scrollable>
       <marker-detail-view
         v-if="currentMarker"
         :marker="currentMarker"
