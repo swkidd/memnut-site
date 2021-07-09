@@ -12,6 +12,7 @@ export default class Memage extends Model {
       id: this.attr(null),
       creator_id: this.attr(null),
       creator: this.belongsTo(User, "creator_id"),
+      image_key: this.attr(null),
       image: this.attr(null),
       mem_ids: this.attr([]),
       mems: this.hasManyBy(Mem, "mem_ids"),
@@ -49,11 +50,7 @@ export default class Memage extends Model {
                 .then((response) => response.json())
                 .then((urlData) =>
                   Memage.insert({
-                    data: {
-                      id: data.id,
-                      creator: data.creator,
-                      image: urlData.data,
-                    },
+                    data: { image: urlData.data, ...data },
                   })
                 );
             }

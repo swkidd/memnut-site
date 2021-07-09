@@ -110,7 +110,7 @@
               class="mb-3 text-center"
               style="max-width: 500px;"
               width="100%"
-              @click="toggle"
+              @click="comment.polygon ? toggle : commentClick([i])"
             >
               <v-card-title>
                 <v-list-item>
@@ -200,12 +200,14 @@ export default {
       canvasHeight: 0,
     };
   },
+  created() {
+    Mem.fetch();
+    Memage.fetch();
+  },
   mounted() {
     if (!this.id) {
       this.id = this.$router.params.id;
     }
-    Mem.fetch();
-    Memage.fetch();
   },
   computed: {
     getWidth() {
@@ -216,11 +218,9 @@ export default {
       }
     },
     mems() {
-      console.log(Mem.all())
-      return Mem
-        .query()
-        .with('creator')
-        .where('memage_id', this.id)
+      return Mem.query()
+        .with("creator")
+        .where("memage_id", this.id)
         .get();
     },
     hasMems() {
@@ -263,18 +263,22 @@ export default {
       this.removeFabricImages();
     },
     startOutline() {
-      this.isCreateMem = true;
-      this.dialog = false;
-      this.mem.selected.forEach((mem) => {
-        const image = new Image();
-        image.src = mem.image;
-        image.onload = () => {
-          const fImage = new fabric.Image(image);
-          fImage.scaleToWidth(200);
-          this.mem.fabricImages = [...this.mem.fabricImages, { mem, fImage }];
-          this.canvas.add(fImage);
-        };
-      });
+      if (this.mem.wholeImage) {
+        this.submit();
+      } else {
+        this.isCreateMem = true;
+        this.dialog = false;
+        this.mem.selected.forEach((mem) => {
+          const image = new Image();
+          image.src = mem.image;
+          image.onload = () => {
+            const fImage = new fabric.Image(image);
+            fImage.scaleToWidth(200);
+            this.mem.fabricImages = [...this.mem.fabricImages, { mem, fImage }];
+            this.canvas.add(fImage);
+          };
+        });
+      }
     },
     addPoint() {
       this.isCreatePoints = true;
@@ -283,50 +287,55 @@ export default {
       this.removeFabricImages();
       commentIndices.forEach((commentIndex) => {
         const comment = this.mems[commentIndex];
-        fabric.util.enlivenObjects([comment.polygon], (enlivenedObjects) => {
-          enlivenedObjects.forEach((obj) => {
-            const scaleFactor = this.canvasWidth / comment.width;
-            obj.left = obj.left * scaleFactor;
-            obj.top = obj.top * scaleFactor;
-            obj.scaleX = obj.scaleY = scaleFactor;
+        if (!comment.polygon) {
+          this.comment.current = comment;
+          this.comment.dialog = true;
+        } else {
+          fabric.util.enlivenObjects([comment.polygon], (enlivenedObjects) => {
+            enlivenedObjects.forEach((obj) => {
+              const scaleFactor = this.canvasWidth / comment.width;
+              obj.left = obj.left * scaleFactor;
+              obj.top = obj.top * scaleFactor;
+              obj.scaleX = obj.scaleY = scaleFactor;
 
-            obj.selectable = false;
-            obj.hoverCursor = "pointer";
+              obj.selectable = false;
+              obj.hoverCursor = "pointer";
 
-            obj.on("mouseup", () => {
-              this.comment.current = comment;
-              this.comment.dialog = true;
+              obj.on("mouseup", () => {
+                this.comment.current = comment;
+                this.comment.dialog = true;
+              });
+
+              this.polygon = obj;
+
+              this.canvas.add(obj);
             });
-
-            this.polygon = obj;
-
-            this.canvas.add(obj);
+            this.canvas.renderAll();
           });
-          this.canvas.renderAll();
-        });
-        // comment.mems.forEach(commentMem => {
-        //   const image = new Image();
-        //   image.src = commentMem.mem.image;
-        //   image.onload = () => {
-        //     const fImage = new fabric.Image(image);
-        //     const scaleFactor = this.canvasWidth / comment.width;
-        //     fImage.top = commentMem.top * scaleFactor;
-        //     fImage.left = commentMem.left * scaleFactor;
-        //     fImage.scaleX = commentMem.scaleX * scaleFactor;
-        //     fImage.scaleY = commentMem.scaleY * scaleFactor;
-        //     fImage.selectable = false;
-        //     fImage.on("mouseup", () => {
-        //       this.comment.current = comment;
-        //       this.comment.dialog = true;
-        //       this.comment.mem = commentMem.mem;
-        //     });
-        //     this.mem.fabricImages = [
-        //       ...this.mem.fabricImages,
-        //       { mem: commentMem.mem, fImage }
-        //     ];
-        //     this.canvas.add(fImage);
-        //   };
-        // });
+          // comment.mems.forEach(commentMem => {
+          //   const image = new Image();
+          //   image.src = commentMem.mem.image;
+          //   image.onload = () => {
+          //     const fImage = new fabric.Image(image);
+          //     const scaleFactor = this.canvasWidth / comment.width;
+          //     fImage.top = commentMem.top * scaleFactor;
+          //     fImage.left = commentMem.left * scaleFactor;
+          //     fImage.scaleX = commentMem.scaleX * scaleFactor;
+          //     fImage.scaleY = commentMem.scaleY * scaleFactor;
+          //     fImage.selectable = false;
+          //     fImage.on("mouseup", () => {
+          //       this.comment.current = comment;
+          //       this.comment.dialog = true;
+          //       this.comment.mem = commentMem.mem;
+          //     });
+          //     this.mem.fabricImages = [
+          //       ...this.mem.fabricImages,
+          //       { mem: commentMem.mem, fImage }
+          //     ];
+          //     this.canvas.add(fImage);
+          //   };
+          // });
+        }
       });
     },
     initCanvas(url) {
@@ -413,8 +422,9 @@ export default {
     },
     submit() {
       if (this.front === "" || this.back === "") return;
-      if (!this.points.length > 2) return;
-      this.createPolygon();
+      if (this.points.length > 2) {
+        this.createPolygon();
+      } else if (!this.mem.wholeImage) return;
 
       // const mems = this.mem.fabricImages.map(fi => {
       //   return {
@@ -479,6 +489,18 @@ export default {
             .then((r) => r.blob())
             .then((blob) => Mem.uploadMem(mem, blob));
         }
+      } else if (this.mem.wholeImage) {
+        const mem = {
+          image_key: this.memage.image_key,
+          order: this.memage.mem_ids.length + 1,
+          memage_id: this.memage.id,
+          front: this.front,
+          back: this.back,
+          width: this.canvasWidth,
+          polygon: this.polygon,
+        };
+
+        Mem.put(mem);
       }
 
       this.removeFabricImages();

@@ -129,4 +129,26 @@ export default class Mem extends Model {
     }
     return "File upload failed";
   }
+
+  static async put(mem) {
+    const accessToken = sessionStorage.getItem("access_token");
+    if (accessToken) {
+      const response = await fetch(
+        "https://v5g7mgbgs6.execute-api.ap-northeast-1.amazonaws.com/api/mems",
+        {
+          method: "PUT",
+          headers: new Headers({
+            Authorization: accessToken,
+            "Content-Type": "application/json",
+          }),
+          body: JSON.stringify(mem),
+        }
+      );
+      const newMem = await response.json();
+      Mem.insert({ data: newMem })
+
+      return `File uploaded successfully`;
+    }
+    return "File upload failed";
+  }
 }
