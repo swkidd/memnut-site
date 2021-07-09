@@ -152,8 +152,7 @@ export default {
       this.isMarkerImage = isMarkerImage;
     },
     addImage(file) {
-      this.image = file;
-      this.fileType = file.type;
+      this.file = file;
       if (this.isMarkerImage) {
         this.clickable = true;
         this.isMarkerImage = false;
@@ -173,15 +172,15 @@ export default {
           latlng: e.latlng,
           image: this.image
         };
-        Marker.uploadMarker(marker, this.fileType);
+        Marker.uploadMarker(marker, this.file);
         this.image = { trigger: false };
         this.clickable = false;
       }
       this.navDrawer = false;
     },
-    addImageToMarker(marker) {
-      Marker.addImageToMarker(marker, this.image, this.fileType);
-    }
+    // addImageToMarker(marker) {
+      // Marker.addImageToMarker(marker, this.image, this.fileType);
+    // }
   }
 };
 </script>

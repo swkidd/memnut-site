@@ -21,10 +21,9 @@ export default class Marker extends Model {
   static fetch() {
     Api.call("GET", "markers").then((resp) =>
       resp.Items.forEach((data) => {
-        console.log(data)
         if (data.image_key) {
-          Api.call("POST", "download", { key: data.image_key })
-            .then((urlData) => {
+          Api.call("POST", "download", { key: data.image_key }).then(
+            (urlData) => {
               Marker.insert({
                 data: {
                   id: data.id,
@@ -34,55 +33,27 @@ export default class Marker extends Model {
                   image: urlData.data,
                 },
               });
-            });
+            }
+          );
         }
       })
     );
   }
-  // static fetch() {
-  //   const accessToken = sessionStorage.getItem("access_token");
-  //   if (accessToken) {
-  //     fetch(
-  //       "https://v5g7mgbgs6.execute-api.ap-northeast-1.amazonaws.com/api/markers",
-  //       {
-  //         headers: new Headers({
-  //           Authorization: accessToken,
-  //           "Content-Type": "application/json",
-  //         }),
-  //       }
-  //     )
-  //       .then((response) => response.json())
-  //       .then((resp) =>
-  //         resp.Items.forEach((data) => {
-  //           if (data.image_key) {
-  //             fetch(
-  //               "https://v5g7mgbgs6.execute-api.ap-northeast-1.amazonaws.com/api/download",
-  //               {
-  //                 method: "POST",
-  //                 headers: new Headers({
-  //                   Authorization: accessToken,
-  //                   "Content-Type": "application/json",
-  //                 }),
-  //                 body: JSON.stringify({ key: data.image_key }),
-  //               }
-  //             )
-  //               .then((response) => response.json())
-  //               .then((urlData) => {
-  //                 Marker.insert({
-  //                   data: {
-  //                     id: data.id,
-  //                     creator: data.creator,
-  //                     latlng: data.latlng,
-  //                     mem_ids: data.mem_ids,
-  //                     image: urlData.data,
-  //                   },
-  //                 });
-  //               });
-  //           }
-  //         })
-  //       );
-  //   }
-  // }
+
+  static uploadMarker(marker, file) {
+    Api.uploadImage(file).then((imageKey) => {
+      if (imageKey) {
+        marker.image_key = imageKey
+        Api.call("PUT", "markers", marker).then(() => {
+          Marker.insert({ data: marker });
+        });
+        setTimeout(() => {
+          Marker.deleteAll();
+          Marker.fetch();
+        }, 5000);
+      }
+    });
+  }
 
   // static fetchById(id) {
   //   const accessToken = sessionStorage.getItem("access_token");
@@ -121,56 +92,4 @@ export default class Marker extends Model {
   //       });
   //   }
   // }
-
-  static async uploadMarker(marker, fileType) {
-    const accessToken = sessionStorage.getItem("access_token");
-    if (accessToken) {
-      let response = await fetch(
-        "https://v5g7mgbgs6.execute-api.ap-northeast-1.amazonaws.com/api/upload",
-        {
-          method: "POST",
-          headers: new Headers({
-            Authorization: accessToken,
-            "Content-Type": "application/json",
-          }),
-          body: JSON.stringify({ fileType }),
-        }
-      );
-      let json = await response.json();
-
-      let form = new FormData();
-      Object.keys(json.data.fields).forEach((key) =>
-        form.append(key, json.data.fields[key])
-      );
-      form.append("file", marker.image);
-
-      response = await fetch(json.data.url, { method: "POST", body: form });
-      if (!response.ok) return "Failed to upload via presigned POST";
-
-      const imageKey = json.data.fields["x-amz-meta-imagekey"];
-      marker.image_key = imageKey;
-
-      response = await fetch(
-        "https://v5g7mgbgs6.execute-api.ap-northeast-1.amazonaws.com/api/markers",
-        {
-          method: "PUT",
-          headers: new Headers({
-            Authorization: accessToken,
-            "Content-Type": "application/json",
-          }),
-          body: JSON.stringify(marker),
-        }
-      );
-      json = await response.json();
-      Marker.insert({ data: marker });
-
-      setTimeout(() => {
-        Marker.deleteAll();
-        Marker.fetch();
-      }, 5000);
-
-      return `File uploaded successfully`;
-    }
-    return "File upload failed";
-  }
 }

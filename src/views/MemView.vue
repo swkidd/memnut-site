@@ -78,7 +78,7 @@ export default {
       this.$refs.imageUpload.$refs.input.click();
     },
     addMemage(file) {
-      Memage.uploadMemage(file, file.type);
+      Memage.uploadMemage(file);
     },
   },
 };

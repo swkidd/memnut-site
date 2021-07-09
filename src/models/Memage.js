@@ -1,6 +1,5 @@
-// User Model
-
 import { Model } from "@vuex-orm/core";
+import Api from "@/plugins/api";
 import User from "@/models/User";
 import Mem from "@/models/Mem";
 
@@ -20,43 +19,19 @@ export default class Memage extends Model {
   }
 
   static fetch() {
-    const accessToken = sessionStorage.getItem("access_token");
-    if (accessToken) {
-      fetch(
-        "https://v5g7mgbgs6.execute-api.ap-northeast-1.amazonaws.com/api/memages",
-        {
-          headers: new Headers({
-            Authorization: accessToken,
-            "Content-Type": "application/json",
-          }),
-        }
-      )
-        .then((response) => response.json())
-        .then((resp) => {
-          if (!resp.Items) return;
-          resp.Items.forEach((data) => {
-            if (data.image_key) {
-              fetch(
-                "https://v5g7mgbgs6.execute-api.ap-northeast-1.amazonaws.com/api/download",
-                {
-                  method: "POST",
-                  headers: new Headers({
-                    Authorization: accessToken,
-                    "Content-Type": "application/json",
-                  }),
-                  body: JSON.stringify({ key: data.image_key }),
-                }
-              )
-                .then((response) => response.json())
-                .then((urlData) =>
-                  Memage.insert({
-                    data: { image: urlData.data, ...data },
-                  })
-                );
+    Api.call("GET", "memages").then((resp) =>
+      resp.Items.forEach((data) => {
+        if (data.image_key) {
+          Api.call("POST", "download", { key: data.image_key }).then(
+            (urlData) => {
+              Memage.insert({
+                data: { image: urlData.data, ...data },
+              });
             }
-          });
-        });
-    }
+          );
+        }
+      })
+    );
   }
 
   // static fetchById(id) {
@@ -76,76 +51,38 @@ export default class Memage extends Model {
   //   }
   // }
 
-  static delete(id) {
-    const accessToken = sessionStorage.getItem("access_token");
-    if (accessToken) {
-      fetch(
-        `https://v5g7mgbgs6.execute-api.ap-northeast-1.amazonaws.com/api/memages/${id}`,
-        {
-          method: "DELETE",
-          headers: new Headers({
-            Authorization: accessToken,
-            "Content-Type": "application/json",
-          }),
-        }
-      )
-        .then((res) => res.text())
-        .then(() => {
+  // static delete(id) {
+  //   const accessToken = sessionStorage.getItem("access_token");
+  //   if (accessToken) {
+  //     fetch(
+  //       `https://v5g7mgbgs6.execute-api.ap-northeast-1.amazonaws.com/api/memages/${id}`,
+  //       {
+  //         method: "DELETE",
+  //         headers: new Headers({
+  //           Authorization: accessToken,
+  //           "Content-Type": "application/json",
+  //         }),
+  //       }
+  //     )
+  //       .then((res) => res.text())
+  //       .then(() => {
+  //         Memage.deleteAll();
+  //         Memage.fetch();
+  //       });
+  //   }
+  // }
+
+  static uploadMemage(file) {
+    Api.uploadImage(file).then((imageKey) => {
+      if (imageKey) {
+        Api.call("PUT", "memages", { image_key: imageKey }).then((memage) => {
+          Memage.insert({ data: memage });
+        });
+        setTimeout(() => {
           Memage.deleteAll();
           Memage.fetch();
-        });
-    }
-  }
-
-  static async uploadMemage(image, fileType) {
-    const accessToken = sessionStorage.getItem("access_token");
-    if (accessToken) {
-      let response = await fetch(
-        "https://v5g7mgbgs6.execute-api.ap-northeast-1.amazonaws.com/api/upload",
-        {
-          method: "POST",
-          headers: new Headers({
-            Authorization: accessToken,
-            "Content-Type": "application/json",
-          }),
-          body: JSON.stringify({ fileType, type: "memage" }),
-        }
-      );
-      let json = await response.json();
-
-      let form = new FormData();
-      Object.keys(json.data.fields).forEach((key) =>
-        form.append(key, json.data.fields[key])
-      );
-      form.append("file", image);
-
-      response = await fetch(json.data.url, { method: "POST", body: form });
-      if (!response.ok) return "Failed to upload via presigned POST";
-
-      const imageKey = json.data.fields["x-amz-meta-imagekey"]
-      console.log(imageKey)
-
-      response = await fetch(
-        "https://v5g7mgbgs6.execute-api.ap-northeast-1.amazonaws.com/api/memages",
-        {
-          method: "PUT",
-          headers: new Headers({
-            Authorization: accessToken,
-            "Content-Type": "application/json",
-          }),
-          body: JSON.stringify({ image_key: imageKey }),
-        }
-      );
-      const memage = await response.json();
-      Memage.insert({ data: memage })
-
-      setTimeout(() => {
-        Memage.deleteAll();
-        Memage.fetch();
-      }, 5000);
-
-      return `File uploaded successfully`;
-    }
-    return "File upload failed";
+        }, 5000);
+      }
+    });
   }
 }
