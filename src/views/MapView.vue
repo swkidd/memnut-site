@@ -20,20 +20,62 @@
         </v-card-actions>
       </v-card>
     </v-dialog>
-    <v-navigation-drawer v-model="navDrawer" absolute bottom hide-overlay>
+    <v-navigation-drawer
+      v-model="navDrawer"
+      width="50%"
+      absolute
+      bottom
+      hide-overlay
+    >
       <v-card v-if="currentMarker" class="mx-auto my-12" elevation="0">
         <v-card-text>
           <v-img
-            max-height="250"
             class="ma-5"
             :src="currentMarker.image"
             @click="openDetailPage(currentMarker.id, i)"
           />
+          <v-item-group multiple>
+            <v-item
+              v-slot="{ active, toggle }"
+              v-for="(comment, i) in currentMarker.mems"
+              :key="i"
+            >
+              <v-card
+                :color="active ? 'primary' : 'default'"
+                class="mb-3 text-center"
+                style="max-width: 500px;"
+                width="100%"
+                @click="toggle"
+              >
+                <v-card-title>
+                  <v-list-item>
+                    <v-list-item-avatar color="grey darken-3">
+                      <v-img
+                        class="elevation-6"
+                        :src="comment.creator.picture"
+                      ></v-img>
+                    </v-list-item-avatar>
+
+                    <v-list-item-content>
+                      <v-list-item-title
+                        class="text-left"
+                        v-text="comment.creator.given_name"
+                      />
+                    </v-list-item-content>
+                  </v-list-item>
+                </v-card-title>
+
+                <v-card-text>
+                  <div v-text="comment.front" />
+                </v-card-text>
+              </v-card>
+            </v-item>
+          </v-item-group>
         </v-card-text>
         <v-card-actions>
           <v-row justify="center" class="flex-column">
-            <v-btn text @click="showImageUpload(false)">
-              Add Image to Marker
+            <v-btn text @click="addMem(false)">
+              Add Mem
             </v-btn>
             <v-btn text color="warning" @click="deleteDialog = true">
               Delete Marker
@@ -73,11 +115,13 @@
     />
     <main-map
       :following="following"
+      :navDrawer="navDrawer"
       @click="mapClick($event)"
       @markerClick="
         currentMarker = $event;
         navDrawer = true;
       "
+      :style="mapStyle"
     />
     <v-snackbar v-model="clickable" timeout="-1" dark>
       <p class="text-center font-weight-bold">
@@ -108,11 +152,24 @@ export default {
       },
       clickable: false,
       image: {
-        trigger: false,
+        trigger: false
       }
     };
   },
   computed: {
+    mapStyle() {
+      return this.$vuetify.breakpoint.mobile
+        ? {
+            height: this.navDrawer ? "50vh" : "100vh",
+            width: "100%"
+          }
+        : {
+            height: "100vh",
+            width: this.navDrawer ? "50%" : "100%",
+            position: "relative",
+            left: this.navDrawer ? "50%" : undefined
+          };
+    },
     locationButtonStyle() {
       return {
         right: "10px",
@@ -136,10 +193,10 @@ export default {
   methods: {
     openDetailPage(id, imageIndex) {
       const routeData = this.$router.resolve({
-        name: 'marker-detail',
+        name: "marker-detail",
         params: { id, imageIndex }
       });
-      window.open(routeData.href, '_blank');
+      window.open(routeData.href, "_blank");
     },
     deleteMarker(id) {
       Marker.delete(id);
@@ -177,9 +234,9 @@ export default {
         this.clickable = false;
       }
       this.navDrawer = false;
-    },
+    }
     // addImageToMarker(marker) {
-      // Marker.addImageToMarker(marker, this.image, this.fileType);
+    // Marker.addImageToMarker(marker, this.image, this.fileType);
     // }
   }
 };

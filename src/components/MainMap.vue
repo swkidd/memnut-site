@@ -2,9 +2,10 @@
   <div>
     <l-map
       ref="map"
+      v-bind="$attrs"
       :center="center"
       :zoom="zoom"
-      style="height: 100vh; width: 100%; z-index: 0;"
+      style="z-index: 0;"
       @click="mapClick"
     >
       <l-tile-layer :url="url" :attribution="attribution" />
@@ -73,6 +74,11 @@ export default {
     LMarker
   },
   props: {
+    navDrawer: {
+      type: Boolean,
+      required: false,
+      default: false
+    },
     following: {
       type: Boolean,
       required: false,
@@ -110,6 +116,12 @@ export default {
             maxWidth: "225px",
             left: "10px"
           }
+        : this.navDrawer
+        ? {
+            maxWidth: "500px",
+            left: "75%",
+            transform: "translateX(-50%)"
+          }
         : {
             maxWidth: "500px",
             left: "50%",
@@ -117,7 +129,7 @@ export default {
           };
     },
     markers() {
-      return Marker.all();
+      return Marker.query().withAllRecursive().get();
     }
   },
   methods: {
