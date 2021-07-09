@@ -1,5 +1,8 @@
 <template>
   <div class="text-center fill-height" style="overflow: hidden;">
+    <v-dialog v-model="addMemDialog">
+      <marker-detail-view v-if="currentMarker" :marker="currentMarker" style="width: 100%; height: 100vh;" />
+    </v-dialog>
     <v-dialog v-model="deleteDialog" max-width="500">
       <v-card>
         <v-card-title>
@@ -137,23 +140,17 @@ export default {
   name: "MapView",
   components: {
     MainMap: () => import("@/components/MainMap"),
-    GoogleSignInButton: () => import("@/components/GoogleSignInButton")
+    GoogleSignInButton: () => import("@/components/GoogleSignInButton"),
+    MarkerDetailView: () => import("@/views/MarkerDetailView")
   },
   data() {
     return {
       navDrawer: false,
+      addMemDialog: false,
       deleteDialog: false,
       currentMarker: null,
-      model: true,
-      carosel: 0,
       following: false,
-      dialog: {
-        buttons: false
-      },
-      clickable: false,
-      image: {
-        trigger: false
-      }
+      clickable: false
     };
   },
   computed: {
@@ -191,6 +188,9 @@ export default {
     }
   },
   methods: {
+    addMem() {
+      this.addMemDialog = true;
+    },
     openDetailPage(id, imageIndex) {
       const routeData = this.$router.resolve({
         name: "marker-detail",
@@ -230,7 +230,6 @@ export default {
           image: this.image
         };
         Marker.uploadMarker(marker, this.file);
-        this.image = { trigger: false };
         this.clickable = false;
       }
       this.navDrawer = false;

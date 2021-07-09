@@ -7,6 +7,7 @@ export default class MarkerMem extends Model {
   static fields() {
     return {
       id: this.attr(null),
+      order: this.attr(null),
       mem_id: this.attr(null),
       mem: this.belongsTo(Mem, 'mem_id'),
       scaleX: this.attr(null),
