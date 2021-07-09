@@ -1,7 +1,11 @@
 <template>
   <div class="text-center fill-height" style="overflow: hidden;">
-    <v-dialog v-model="addMemDialog">
-      <marker-detail-view v-if="currentMarker" :marker="currentMarker" style="width: 100%; height: 100vh;" />
+    <v-dialog v-model="addMemDialog" width="100%" height="100%" scrollable>
+      <marker-detail-view
+        v-if="currentMarker"
+        :marker="currentMarker"
+        :key="currentMarker.id"
+      />
     </v-dialog>
     <v-dialog v-model="deleteDialog" max-width="500">
       <v-card>
@@ -141,7 +145,7 @@ export default {
   components: {
     MainMap: () => import("@/components/MainMap"),
     GoogleSignInButton: () => import("@/components/GoogleSignInButton"),
-    MarkerDetailView: () => import("@/views/MarkerDetailView")
+    MarkerDetailView: () => import("@/views/MarkerDetailView"),
   },
   data() {
     return {
@@ -150,7 +154,7 @@ export default {
       deleteDialog: false,
       currentMarker: null,
       following: false,
-      clickable: false
+      clickable: false,
     };
   },
   computed: {
@@ -158,25 +162,25 @@ export default {
       return this.$vuetify.breakpoint.mobile
         ? {
             height: this.navDrawer ? "50vh" : "100vh",
-            width: "100%"
+            width: "100%",
           }
         : {
             height: "100vh",
             width: this.navDrawer ? "50%" : "100%",
             position: "relative",
-            left: this.navDrawer ? "50%" : undefined
+            left: this.navDrawer ? "50%" : undefined,
           };
     },
     locationButtonStyle() {
       return {
         right: "10px",
-        bottom: this.$vuetify.breakpoint.mobile ? "130px" : "70px"
+        bottom: this.$vuetify.breakpoint.mobile ? "130px" : "70px",
       };
     },
     floatingButtonStyle() {
       return {
         right: "10px",
-        bottom: this.$vuetify.breakpoint.mobile ? "60px" : "10px"
+        bottom: this.$vuetify.breakpoint.mobile ? "60px" : "10px",
       };
     },
     cardWidth() {
@@ -185,7 +189,7 @@ export default {
       } else {
         return 400;
       }
-    }
+    },
   },
   methods: {
     addMem() {
@@ -194,7 +198,7 @@ export default {
     openDetailPage(id, imageIndex) {
       const routeData = this.$router.resolve({
         name: "marker-detail",
-        params: { id, imageIndex }
+        params: { id, imageIndex },
       });
       window.open(routeData.href, "_blank");
     },
@@ -227,17 +231,17 @@ export default {
       if (this.clickable) {
         const marker = {
           latlng: e.latlng,
-          image: this.image
+          image: this.image,
         };
         Marker.uploadMarker(marker, this.file);
         this.clickable = false;
       }
       this.navDrawer = false;
-    }
+    },
     // addImageToMarker(marker) {
     // Marker.addImageToMarker(marker, this.image, this.fileType);
     // }
-  }
+  },
 };
 </script>
 
