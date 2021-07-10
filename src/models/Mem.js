@@ -24,7 +24,7 @@ export default class Mem extends Model {
   }
 
   static fetch() {
-    Api.call("GET", "markers").then((resp) =>
+    Api.call("GET", "mems").then((resp) =>
       resp.Items.forEach((data) => {
         if (data.image_key) {
           Api.call("POST", "download", { key: data.image_key }).then(

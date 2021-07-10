@@ -43,7 +43,7 @@ export default class Marker extends Model {
   static uploadMarker(marker, file) {
     Api.uploadImage(file).then((imageKey) => {
       if (imageKey) {
-        marker.image_key = imageKey
+        marker.image_key = imageKey;
         Api.call("PUT", "markers", marker).then(() => {
           Marker.insert({ data: marker });
         });
@@ -52,6 +52,12 @@ export default class Marker extends Model {
           Marker.fetch();
         }, 5000);
       }
+    });
+  }
+
+  static update(marker) {
+    Api.call("PUT", `markers/${marker.id}`, marker).then(() => {
+      Marker.insert({ data: marker });
     });
   }
 
