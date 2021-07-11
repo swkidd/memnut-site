@@ -12,6 +12,7 @@ export default class Marker extends Model {
       creator_id: this.attr(null),
       creator: this.belongsTo(User, "creator_id"),
       latlng: this.attr(null),
+      image_key: this.attr(null),
       image: this.attr(null),
       mem_ids: this.attr([]),
       mems: this.hasManyBy(MarkerMem, "mem_ids"),
@@ -24,15 +25,7 @@ export default class Marker extends Model {
         if (data.image_key) {
           Api.call("POST", "download", { key: data.image_key }).then(
             (urlData) => {
-              Marker.insert({
-                data: {
-                  id: data.id,
-                  creator: data.creator,
-                  latlng: data.latlng,
-                  mem_ids: data.mem_ids,
-                  image: urlData.data,
-                },
-              });
+              Marker.insert({ data: { image: urlData.data, ...data } });
             }
           );
         }
