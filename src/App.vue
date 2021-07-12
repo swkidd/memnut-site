@@ -1,13 +1,28 @@
 <template>
   <v-app>
-    <v-main>
+    <v-app-bar :dense="$vuetify.breakpoint.mobile" max-height="60" fixed>
+      <v-app-bar-nav-icon></v-app-bar-nav-icon>
+
+      <v-toolbar-title @click="$router.push({ name: 'map' })" style="cursor: pointer;">MEMNUT</v-toolbar-title>
+
+      <v-spacer></v-spacer>
+
+      <v-btn text to="mems">
+        Mems
+      </v-btn>
+
+      <v-btn icon>
+        <v-icon>mdi-magnify</v-icon>
+      </v-btn>
+    </v-app-bar>
+    <v-main style="margin-top: 60px; max-height: calc(100vh - 60px);">
       <router-view />
     </v-main>
   </v-app>
 </template>
 
 <script>
-import { fabric } from "fabric"
+import { fabric } from "fabric";
 export default {
   name: "App",
   data: () => ({}),
@@ -50,10 +65,10 @@ export default {
               eventTypePrefix + "down",
               this._onMouseDown
             );
-          }
+          },
         }
       );
     })();
-  }
+  },
 };
 </script>
