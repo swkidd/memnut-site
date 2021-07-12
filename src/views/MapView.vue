@@ -5,6 +5,7 @@
         v-if="currentMarker"
         :marker="currentMarker"
         :key="currentMarker.id"
+        @dialog="addMemDialog = $event"
       />
     </v-dialog>
     <v-dialog v-model="deleteDialog" max-width="500">
@@ -36,11 +37,8 @@
     >
       <v-card v-if="currentMarker" class="mx-auto my-12" elevation="0">
         <v-card-text>
-          <v-img
-            class="ma-5"
-            :src="currentMarker.image"
-          />
-          <v-item-group multiple>
+          <img-canvas :url="currentMarker.image" :mems="mems" marker-mems />
+          <v-item-group multiple @change="commentClick($event)">
             <v-item
               v-slot="{ active, toggle }"
               v-for="(comment, i) in currentMarker.mems"
@@ -58,22 +56,18 @@
                     <v-list-item-avatar color="grey darken-3">
                       <v-img
                         class="elevation-6"
-                        :src="comment.creator.picture"
+                        :src="comment.mem.image"
                       ></v-img>
                     </v-list-item-avatar>
 
                     <v-list-item-content>
                       <v-list-item-title
                         class="text-left"
-                        v-text="comment.creator.given_name"
+                        v-text="comment.mem.front"
                       />
                     </v-list-item-content>
                   </v-list-item>
                 </v-card-title>
-
-                <v-card-text>
-                  <div v-text="comment.front" />
-                </v-card-text>
               </v-card>
             </v-item>
           </v-item-group>
@@ -123,10 +117,7 @@
       :following="following"
       :navDrawer="navDrawer"
       @click="mapClick($event)"
-      @markerClick="
-        currentMarker = $event;
-        navDrawer = true;
-      "
+      @markerClick="markerClick($event)"
       :style="mapStyle"
     />
     <v-snackbar v-model="clickable" timeout="-1" dark>
@@ -142,44 +133,52 @@ import Marker from "@/models/Marker";
 export default {
   name: "MapView",
   components: {
+    ImgCanvas: () => import("@/components/ImgCanvas"),
     MainMap: () => import("@/components/MainMap"),
     GoogleSignInButton: () => import("@/components/GoogleSignInButton"),
-    MarkerDetailView: () => import("@/views/MarkerDetailView"),
+    MarkerDetailView: () => import("@/views/MarkerDetailView")
   },
   data() {
     return {
       navDrawer: false,
       addMemDialog: false,
       deleteDialog: false,
-      currentMarker: null,
+      markerId: null,
       following: false,
       clickable: false,
+      mems: []
     };
   },
   computed: {
+    currentMarker() {
+      return Marker.query()
+        .where("id", this.markerId)
+        .withAllRecursive()
+        .first();
+    },
     mapStyle() {
       return this.$vuetify.breakpoint.mobile
         ? {
             height: this.navDrawer ? "50vh" : "100vh",
-            width: "100%",
+            width: "100%"
           }
         : {
             height: "100vh",
             width: this.navDrawer ? "50%" : "100%",
             position: "relative",
-            left: this.navDrawer ? "50%" : undefined,
+            left: this.navDrawer ? "50%" : undefined
           };
     },
     locationButtonStyle() {
       return {
         right: "10px",
-        bottom: this.$vuetify.breakpoint.mobile ? "130px" : "70px",
+        bottom: this.$vuetify.breakpoint.mobile ? "130px" : "70px"
       };
     },
     floatingButtonStyle() {
       return {
         right: "10px",
-        bottom: this.$vuetify.breakpoint.mobile ? "60px" : "10px",
+        bottom: this.$vuetify.breakpoint.mobile ? "60px" : "10px"
       };
     },
     cardWidth() {
@@ -188,16 +187,25 @@ export default {
       } else {
         return 400;
       }
-    },
+    }
   },
   methods: {
+    markerClick(id) {
+      this.markerId = id;
+      this.navDrawer = true;
+    },
+    commentClick(commentIndices) {
+      this.mems = this.currentMarker.mems.filter((_, index) =>
+        commentIndices.includes(index)
+      );
+    },
     addMem() {
       this.addMemDialog = true;
     },
     openDetailPage(id, imageIndex) {
       const routeData = this.$router.resolve({
         name: "marker-detail",
-        params: { id, imageIndex },
+        params: { id, imageIndex }
       });
       window.open(routeData.href, "_blank");
     },
@@ -230,17 +238,17 @@ export default {
       if (this.clickable) {
         const marker = {
           latlng: e.latlng,
-          image: this.image,
+          image: this.image
         };
         Marker.uploadMarker(marker, this.file);
         this.clickable = false;
       }
       this.navDrawer = false;
-    },
+    }
     // addImageToMarker(marker) {
     // Marker.addImageToMarker(marker, this.image, this.fileType);
     // }
-  },
+  }
 };
 </script>
 

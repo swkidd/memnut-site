@@ -1,81 +1,42 @@
 <template>
-  <v-row>
-    <v-toolbar width="100%">
-      <v-btn icon @click="addText">
-        <v-icon>mdi-message-text-outline</v-icon>
-      </v-btn>
-
-      <v-file-input
-        accept="image/*"
-        hide-input
-        prepend-icon="mdi-image-outline"
-        style="max-width: 24px;"
-        @change="addImage"
-      />
-
-      <v-btn icon @click="clear">
-        <v-icon>mdi-delete-outline</v-icon>
-      </v-btn>
-      <v-spacer />
-
-      <color-picker
-        v-if="currentObjectType === 'textbox'"
-        :color="color.background"
-        icon="mdi-format-color-fill"
-        @change="setAttr('backgroundColor', $event)"
-      />
-      <color-picker
-        v-if="currentObjectType === 'textbox'"
-        :color="color.text"
-        icon="mdi-format-color-text"
-        @change="setAttr('fill', $event)"
-      />
-    </v-toolbar>
-    <v-menu
-      v-model="contextMenu.open"
-      absolute
-      offset-y
-      :position-x="contextMenu.x"
-      :position-y="contextMenu.y"
-      style="max-width: 600px; z-index: 600;"
-    >
-      <v-list>
-        <v-list-item @click="canvas.remove(contextMenu.element)"
-          >Remove Element</v-list-item
-        >
-        <v-list-item @click="canvas.bringForward(contextMenu.element)"
-          >Bring Forward</v-list-item
-        >
-        <v-list-item @click="canvas.sendBackwards(contextMenu.element)"
-          >Send Backward</v-list-item
-        >
-        <v-list-item @click="canvas.bringToFront(contextMenu.element)"
-          >Bring To Front</v-list-item
-        >
-        <v-list-item @click="canvas.sendToBack(contextMenu.element)"
-          >Send To Back</v-list-item
-        >
-      </v-list>
-    </v-menu>
-    <v-row justify="center" class="my-5 fill-height">
-      <canvas
-        ref="can"
-        :height="getHeight"
-        :width="getWidth"
-        style="border: 1px solid black;"
-      ></canvas>
+  <v-sheet
+    ref="canContainer"
+    :style="canvasWrapperStyle"
+    v-resize="resizeCanvas"
+    elevation="0"
+  >
+    <v-row justify="center" class="flex-column">
+      <v-col class="d-flex flex-row justify-center align-center">
+        <canvas ref="can" :width="canvasWidth" :height="canvasHeight"></canvas>
+      </v-col>
     </v-row>
-  </v-row>
+  </v-sheet>
 </template>
 
 <script>
 import { fabric } from "fabric";
-import ColorPicker from "./ColorPicker.vue";
-
 export default {
-  components: { ColorPicker },
+  name: "ImageCanvas",
   props: {
-    imageTrigger: {
+    url: {
+      type: String,
+      required: false
+    },
+    selectable: {
+      type: Boolean,
+      required: false,
+      default: false
+    },
+    markerMems: {
+      type: Boolean,
+      required: false,
+      default: false
+    },
+    mems: {
+      type: Array,
+      required: false
+    },
+    getMems: {
       type: Boolean,
       required: false,
       default: false
@@ -84,108 +45,142 @@ export default {
   data() {
     return {
       canvas: null,
-      currentObject: null,
       canvasWidth: 0,
       canvasHeight: 0,
-      color: {
-        background: "#FFFFFF",
-        text: "#000000"
-      },
-      contextMenu: { open: false, x: 0, y: 0, element: null }
+      mem: {
+        selected: [],
+        fabricImages: []
+      }
     };
   },
-  mounted() {
-    const ref = this.$refs.can;
-    const canvas = new fabric.Canvas(ref, {
-      width: this.canvasWidth,
-      height: this.canvasHeight,
-      fireRightClick: true,
-      stopContextMenu: true
-    });
-    canvas.on({
-      "touch:longpress": event => {
-        if (event.target) {
-          this.contextMenu = {
-            open: true,
-            x: event.e.clientX,
-            y: event.e.clientY,
-            element: event.target
-          };
-        }
-      },
-      "mouse:down": event => {
-        if (event.button === 3 && event.target) {
-          this.contextMenu = {
-            open: true,
-            x: event.e.clientX,
-            y: event.e.clientY,
-            element: event.target
-          };
-        }
-      },
-      "selection:created": () => {
-        this.currentObject = this.canvas.getActiveObject();
-      },
-      "selection:updated": () => {
-        this.currentObject = this.canvas.getActiveObject();
-      },
-      "selection:cleared": () => {
-        this.currentObject = null;
-      }
-    });
-    this.canvas = canvas;
-  },
   computed: {
-    getWidth() {
-      if (this.$vuetify.breakpoint.mobile) {
-        return window.innerWidth * 0.7;
-      } else {
-        return 500;
-      }
-    },
-    getHeight() {
-      if (this.$vuetify.breakpoint.mobile) {
-        return window.innerHeight * 0.5
-      } else {
-        return 500;
-      }
-    },
-    currentObjectType() {
-      if (!this.currentObject) return "";
-      return this.currentObject.type;
+    canvasWrapperStyle() {
+      const pad = this.$vuetify.breakpoint.mobile ? "10px" : "50px";
+      return {
+        paddingTop: pad,
+        paddingBottom: pad,
+        width: "100%",
+        height: "100%"
+      };
     }
   },
   watch: {
-    imageTrigger(val) {
-      if (val) {
-        this.$emit("change", this.canvas.toDataURL({
-          format: 'png',
-        }));
+    getMems(newVal, oldVal) {
+      if (!oldVal && newVal) {
+        this.$emit(
+          "gotMems",
+          this.mem.fabricImages.map((fi, index) => {
+            return {
+              order: index,
+              mem_id: fi.mem.id,
+              left: fi.fImage.left,
+              top: fi.fImage.top,
+              scaleX: fi.fImage.scaleX,
+              scaleY: fi.fImage.scaleY
+            };
+          })
+        );
+        this.removeFabricImages()
+      }
+    },
+    url: {
+      deep: true,
+      immediate: true,
+      handler(val) {
+        if (val) {
+          this.initCanvas(val);
+        }
+      }
+    },
+    mems(val) {
+      if (val && this.markerMems) {
+        this.removeFabricImages();
+        // markermems
+        val.forEach(commentMem => {
+          const image = new Image();
+          image.src = commentMem.mem.image;
+          image.onload = () => {
+            const fImage = new fabric.Image(image);
+            const scaleFactor = this.canvasWidth / commentMem.mem.width;
+            fImage.top = commentMem.top * scaleFactor;
+            fImage.left = commentMem.left * scaleFactor;
+            fImage.scaleX = commentMem.scaleX * scaleFactor;
+            fImage.scaleY = commentMem.scaleY * scaleFactor;
+            fImage.selectable = this.selectable;
+            // fImage.on("mouseup", () => {
+            // });
+            this.mem.fabricImages = [
+              ...this.mem.fabricImages,
+              { mem: commentMem.mem, fImage }
+            ];
+            this.canvas.add(fImage);
+          };
+        });
+      } else if (val) {
+        val.forEach(mem => {
+          const image = new Image();
+          image.src = mem.image;
+          image.onload = () => {
+            const fImage = new fabric.Image(image);
+            fImage.scaleToWidth(200);
+            this.mem.fabricImages = [...this.mem.fabricImages, { mem, fImage }];
+            this.canvas.add(fImage);
+          };
+        });
       }
     }
   },
   methods: {
-    setAttr(attr, val) {
-      this.currentObject.set(attr, val);
+    removeFabricImages() {
+      this.mem.fabricImages.forEach(fi => this.canvas.remove(fi.fImage));
+      this.mem.fabricImages = [];
       this.canvas.renderAll();
     },
-    addText() {
-      var textbox = new fabric.Textbox("Text goes here...", {
-        textAlign: "center",
-        width: 200,
-        fontSize: 24 
-      });
-      this.canvas.add(textbox);
+    getWidth() {
+      return this.$refs.canContainer.$el.clientWidth;
     },
-    addImage(file) {
-      fabric.Image.fromURL(URL.createObjectURL(file), img => {
-        img.scaleToWidth(this.getWidth);
-        this.canvas.add(img);
-      });
+    resizeCanvas() {
+      if (this.canvas) {
+        this.canvas.getObjects().forEach(obj => {
+          const width = this.getWidth();
+          if (obj.get("type") === "image") {
+            obj.scaleToWidth(width);
+            this.canvasWidth = width;
+            this.canvasHeight = obj.height * (width / obj.width);
+            this.canvas.setDimensions({
+              width,
+              height: this.canvasHeight
+            });
+          }
+        });
+      }
     },
-    clear() {
-      this.canvas.clear();
-    },
+    initCanvas(url) {
+      fabric.Image.fromURL(
+        url,
+        img => {
+          const ref = this.$refs.can;
+          const width = this.getWidth();
+          this.canvasWidth = width;
+          this.canvasHeight = img.height * (width / img.width);
+
+          const canvas = new fabric.Canvas(ref, {
+            width: this.canvasWidth,
+            height: this.canvasHeight,
+            preserveObjectStacking: true,
+            allowTouchScrolling: true
+          });
+          this.canvas = canvas;
+
+          img.scaleToWidth(this.canvasWidth);
+          img.selectable = false;
+          img.hoverCursor = "default";
+
+          canvas.add(img);
+        },
+        { crossOrigin: "Anonymous" }
+      );
+    }
   }
 };
 </script>

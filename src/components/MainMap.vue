@@ -134,7 +134,7 @@ export default {
   },
   methods: {
     markerClick(marker) {
-      this.$emit("markerClick", marker);
+      this.$emit("markerClick", marker.id);
     },
     markerImageClick(marker) {
       if (this.$refs[`marker${marker.id}`].length) {
