@@ -39,7 +39,6 @@
           <v-img
             class="ma-5"
             :src="currentMarker.image"
-            @click="openDetailPage(currentMarker.id, i)"
           />
           <v-item-group multiple>
             <v-item

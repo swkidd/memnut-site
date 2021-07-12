@@ -1,8 +1,7 @@
 <template>
   <v-app>
     <v-app-bar :dense="$vuetify.breakpoint.mobile" max-height="60" fixed>
-      <v-app-bar-nav-icon></v-app-bar-nav-icon>
-
+      <v-icon class="mx-1">mdi-tooltip-image</v-icon>
       <v-toolbar-title @click="$router.push({ name: 'map' })" style="cursor: pointer;">MEMNUT</v-toolbar-title>
 
       <v-spacer></v-spacer>
