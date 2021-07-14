@@ -10,8 +10,8 @@ const routes = [
     component: () => import('@/views/MapView')
   },
   {
-    path: '/mems',
-    name: 'mems',
+    path: '/memages',
+    name: 'memages',
     component: () => import('@/views/MemView')
   },
   {

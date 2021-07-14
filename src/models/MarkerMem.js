@@ -14,6 +14,7 @@ export default class MarkerMem extends Model {
       scaleY: this.attr(null),
       left: this.attr(null),
       top: this.attr(null),
+      width: this.attr(null),
     };
   }
 }

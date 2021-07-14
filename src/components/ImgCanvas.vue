@@ -76,7 +76,8 @@ export default {
               left: fi.fImage.left,
               top: fi.fImage.top,
               scaleX: fi.fImage.scaleX,
-              scaleY: fi.fImage.scaleY
+              scaleY: fi.fImage.scaleY,
+              width: this.canvasWidth,
             };
           })
         );
@@ -101,7 +102,7 @@ export default {
           image.src = commentMem.mem.image;
           image.onload = () => {
             const fImage = new fabric.Image(image);
-            const scaleFactor = this.canvasWidth / commentMem.mem.width;
+            const scaleFactor = this.canvasWidth / commentMem.width;
             fImage.top = commentMem.top * scaleFactor;
             fImage.left = commentMem.left * scaleFactor;
             fImage.scaleX = commentMem.scaleX * scaleFactor;
@@ -141,6 +142,7 @@ export default {
     },
     resizeCanvas() {
       if (this.canvas) {
+        this.removeFabricImages()
         this.canvas.getObjects().forEach(obj => {
           const width = this.getWidth();
           if (obj.get("type") === "image") {

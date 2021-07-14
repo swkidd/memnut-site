@@ -6,8 +6,8 @@
 
       <v-spacer></v-spacer>
 
-      <v-btn text to="mems">
-        Mems
+      <v-btn text to="memages">
+        Memages 
       </v-btn>
 
       <v-btn icon>
