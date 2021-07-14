@@ -3,6 +3,7 @@
     ref="canContainer"
     :style="canvasWrapperStyle"
     v-resize="resizeCanvas"
+    min-width="300"
     elevation="0"
   >
     <v-row justify="center" class="flex-column">
@@ -20,27 +21,27 @@ export default {
   props: {
     url: {
       type: String,
-      required: false
+      required: false,
     },
     selectable: {
       type: Boolean,
       required: false,
-      default: false
+      default: false,
     },
     markerMems: {
       type: Boolean,
       required: false,
-      default: false
+      default: false,
     },
     mems: {
       type: Array,
-      required: false
+      required: false,
     },
     getMems: {
       type: Boolean,
       required: false,
-      default: false
-    }
+      default: false,
+    },
   },
   data() {
     return {
@@ -49,8 +50,8 @@ export default {
       canvasHeight: 0,
       mem: {
         selected: [],
-        fabricImages: []
-      }
+        fabricImages: [],
+      },
     };
   },
   computed: {
@@ -60,9 +61,9 @@ export default {
         paddingTop: pad,
         paddingBottom: pad,
         width: "100%",
-        height: "100%"
+        height: "100%",
       };
-    }
+    },
   },
   watch: {
     getMems(newVal, oldVal) {
@@ -81,7 +82,7 @@ export default {
             };
           })
         );
-        this.removeFabricImages()
+        this.removeFabricImages();
       }
     },
     url: {
@@ -91,13 +92,24 @@ export default {
         if (val) {
           this.initCanvas(val);
         }
-      }
+      },
     },
-    mems(val) {
-      if (val && this.markerMems) {
+    mems: {
+      deep: true,
+      immediate: true,
+      handler(val) {
+        if (val && this.canvas) {
+          this.initMems(val)
+        }
+      },
+    },
+  },
+  methods: {
+    initMems (mems) {
+      if (mems && this.markerMems) {
         this.removeFabricImages();
         // markermems
-        val.forEach(commentMem => {
+        mems.forEach((commentMem) => {
           const image = new Image();
           image.src = commentMem.mem.image;
           image.onload = () => {
@@ -110,18 +122,18 @@ export default {
             fImage.selectable = this.selectable;
             fImage.on("mouseup", () => {
               if (this.markerMems) {
-                this.goToMem(commentMem.mem)
+                this.goToMem(commentMem.mem);
               }
             });
             this.mem.fabricImages = [
               ...this.mem.fabricImages,
-              { mem: commentMem.mem, fImage }
+              { mem: commentMem.mem, fImage },
             ];
             this.canvas.add(fImage);
           };
         });
-      } else if (val) {
-        val.forEach(mem => {
+      } else if (mems) {
+        mems.forEach((mem) => {
           const image = new Image();
           image.src = mem.image;
           image.onload = () => {
@@ -132,28 +144,29 @@ export default {
           };
         });
       }
-    }
-  },
-  methods: {
+    },
     goToMem(mem) {
       const routeData = this.$router.resolve({
         name: "memage-detail",
-        params: { id: mem.memage_id }
+        params: { id: mem.memage_id },
       });
       window.open(routeData.href, "_blank");
     },
     removeFabricImages() {
-      this.mem.fabricImages.forEach(fi => this.canvas.remove(fi.fImage));
+      this.mem.fabricImages.forEach((fi) => this.canvas.remove(fi.fImage));
       this.mem.fabricImages = [];
       this.canvas.renderAll();
     },
     getWidth() {
       return this.$refs.canContainer.$el.clientWidth;
+      // return this.$vuetify.breakpoint.mobile
+      //   ? this.$vuetify.breakpoint.width
+      //   : this.$refs.canContainer.$el.clientWidth;
     },
     resizeCanvas() {
       if (this.canvas) {
-        this.removeFabricImages()
-        this.canvas.getObjects().forEach(obj => {
+        this.removeFabricImages();
+        this.canvas.getObjects().forEach((obj) => {
           const width = this.getWidth();
           if (obj.get("type") === "image") {
             obj.scaleToWidth(width);
@@ -161,16 +174,17 @@ export default {
             this.canvasHeight = obj.height * (width / obj.width);
             this.canvas.setDimensions({
               width,
-              height: this.canvasHeight
+              height: this.canvasHeight,
             });
           }
         });
+        this.initMems(this.mems)
       }
     },
     initCanvas(url) {
       fabric.Image.fromURL(
         url,
-        img => {
+        (img) => {
           const ref = this.$refs.can;
           const width = this.getWidth();
           this.canvasWidth = width;
@@ -180,7 +194,7 @@ export default {
             width: this.canvasWidth,
             height: this.canvasHeight,
             preserveObjectStacking: true,
-            allowTouchScrolling: true
+            allowTouchScrolling: true,
           });
           this.canvas = canvas;
 
@@ -189,10 +203,11 @@ export default {
           img.hoverCursor = "default";
 
           canvas.add(img);
+          this.initMems(this.mems)
         },
         { crossOrigin: "Anonymous" }
       );
-    }
-  }
+    },
+  },
 };
 </script>

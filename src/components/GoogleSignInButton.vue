@@ -11,7 +11,6 @@ export default {
     setTimeout(() => {
       window.gapi.signin2.render("google-sign-in", {
         scope: "profile email",
-        theme: "dark",
         onsuccess: this.onSuccess,
         onfailure: this.onFailure,
       });
@@ -23,10 +22,10 @@ export default {
       sessionStorage.setItem("access_token", id_token);
 
       // fetch data on login
-      Marker.deleteAll();
-      Marker.fetch();
       Mem.deleteAll();
       Mem.fetch();
+      Marker.deleteAll();
+      Marker.fetch();
     },
     onFailure(error) {
       console.log("google sign in error", error);

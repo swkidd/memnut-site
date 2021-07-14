@@ -38,7 +38,7 @@
       <v-card v-if="currentMarker" class="mx-auto my-12" elevation="0">
         <v-card-text>
           <img-canvas :url="currentMarker.image" :mems="mems" marker-mems />
-          <v-item-group multiple @change="commentClick($event)">
+          <!-- <v-item-group multiple @change="commentClick($event)">
             <v-item
               v-slot="{ active, toggle }"
               v-for="(comment, i) in currentMarker.mems"
@@ -47,7 +47,6 @@
               <v-card
                 :color="active ? 'primary' : 'default'"
                 class="mb-3 text-center"
-                style="max-width: 500px;"
                 width="100%"
                 @click="toggle"
               >
@@ -70,7 +69,7 @@
                 </v-card-title>
               </v-card>
             </v-item>
-          </v-item-group>
+          </v-item-group> -->
         </v-card-text>
         <v-card-actions>
           <v-row justify="center" class="flex-column">
@@ -131,7 +130,10 @@ export default {
   components: {
     ImgCanvas: () => import("@/components/ImgCanvas"),
     MainMap: () => import("@/components/MainMap"),
-    MarkerDetailView: () => import("@/views/MarkerDetailView")
+    MarkerDetailView: () => import("@/views/MarkerDetailView"),
+  },
+  beforeCreate: function() {
+    document.body.classList.add("overflow-hidden");
   },
   data() {
     return {
@@ -141,7 +143,7 @@ export default {
       markerId: null,
       following: false,
       clickable: false,
-      mems: []
+      // mems: [], // commented out commentClick to show all marker mems, added computed prop
     };
   },
   computed: {
@@ -151,29 +153,37 @@ export default {
         .withAllRecursive()
         .first();
     },
+    mems() {
+      if (this.markerId) {
+        return this.currentMarker.mems;
+      }
+      return [];
+    },
     mapStyle() {
       return this.$vuetify.breakpoint.mobile
         ? {
             height: this.navDrawer ? "50vh" : "100vh",
-            width: "100%"
+            width: "100%",
+            overflow: "hidden",
           }
         : {
             height: "100vh",
             width: this.navDrawer ? "50%" : "100%",
             position: "relative",
-            left: this.navDrawer ? "50%" : undefined
+            left: this.navDrawer ? "50%" : undefined,
+            overflow: "hidden",
           };
     },
     locationButtonStyle() {
       return {
         right: "10px",
-        bottom: this.$vuetify.breakpoint.mobile ? "130px" : "70px"
+        bottom: this.$vuetify.breakpoint.mobile ? "130px" : "70px",
       };
     },
     floatingButtonStyle() {
       return {
         right: "10px",
-        bottom: this.$vuetify.breakpoint.mobile ? "60px" : "10px"
+        bottom: this.$vuetify.breakpoint.mobile ? "60px" : "10px",
       };
     },
     cardWidth() {
@@ -182,7 +192,7 @@ export default {
       } else {
         return 400;
       }
-    }
+    },
   },
   methods: {
     markerClick(id) {
@@ -200,7 +210,7 @@ export default {
     openDetailPage(id, imageIndex) {
       const routeData = this.$router.resolve({
         name: "marker-detail",
-        params: { id, imageIndex }
+        params: { id, imageIndex },
       });
       window.open(routeData.href, "_blank");
     },
@@ -233,17 +243,17 @@ export default {
       if (this.clickable) {
         const marker = {
           latlng: e.latlng,
-          image: this.image
+          image: this.image,
         };
         Marker.uploadMarker(marker, this.file);
         this.clickable = false;
       }
       this.navDrawer = false;
-    }
+    },
     // addImageToMarker(marker) {
     // Marker.addImageToMarker(marker, this.image, this.fileType);
     // }
-  }
+  },
 };
 </script>
 
