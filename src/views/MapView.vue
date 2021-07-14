@@ -34,6 +34,7 @@
       absolute
       bottom
       hide-overlay
+      style="z-index: 2;"
     >
       <v-card v-if="currentMarker" class="mx-auto my-12" elevation="0">
         <v-card-text>
@@ -260,6 +261,6 @@ export default {
 <style scoped>
 .floating-button {
   position: absolute;
-  z-index: 50;
+  z-index: 1;
 }
 </style>
