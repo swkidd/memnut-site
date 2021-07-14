@@ -84,10 +84,6 @@
         </v-card-actions>
       </v-card>
     </v-navigation-drawer>
-    <google-sign-in-button
-      class="floating-button"
-      style="right: 10px; top: 10px;"
-    />
     <v-btn
       fab
       class="floating-button"
@@ -135,7 +131,6 @@ export default {
   components: {
     ImgCanvas: () => import("@/components/ImgCanvas"),
     MainMap: () => import("@/components/MainMap"),
-    GoogleSignInButton: () => import("@/components/GoogleSignInButton"),
     MarkerDetailView: () => import("@/views/MarkerDetailView")
   },
   data() {

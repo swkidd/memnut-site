@@ -2,13 +2,19 @@
   <v-app>
     <v-app-bar :dense="$vuetify.breakpoint.mobile" max-height="60" fixed>
       <v-icon class="mx-1">mdi-tooltip-image</v-icon>
-      <v-toolbar-title @click="$router.push({ name: 'map' })" style="cursor: pointer;">MEMNUT</v-toolbar-title>
+      <v-toolbar-title
+        @click="$router.push({ name: 'map' })"
+        style="cursor: pointer;"
+        >MEMNUT</v-toolbar-title
+      >
 
       <v-spacer></v-spacer>
 
       <v-btn text to="memages">
-        Memages 
+        Memages
       </v-btn>
+
+      <google-sign-in-button class="mx-5" />
 
       <v-btn icon>
         <v-icon>mdi-magnify</v-icon>
@@ -24,6 +30,9 @@
 import { fabric } from "fabric";
 export default {
   name: "App",
+  components: {
+    GoogleSignInButton: () => import("@/components/GoogleSignInButton"),
+  },
   data: () => ({}),
   created() {
     (function() {

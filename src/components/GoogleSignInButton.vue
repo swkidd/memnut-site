@@ -1,9 +1,9 @@
 <template>
-  <div id="google-sign-in" />
+  <div id="google-sign-in" v-bind="$attrs" />
 </template>
 <script>
-import Marker from "@/models/Marker"
-import Mem from "@/models/Mem"
+import Marker from "@/models/Marker";
+import Mem from "@/models/Mem";
 export default {
   name: "GoogleSignInButton",
   mounted() {
@@ -13,7 +13,7 @@ export default {
         scope: "profile email",
         theme: "dark",
         onsuccess: this.onSuccess,
-        onfailure: this.onFailure
+        onfailure: this.onFailure,
       });
     }, 2000);
   },
@@ -23,14 +23,14 @@ export default {
       sessionStorage.setItem("access_token", id_token);
 
       // fetch data on login
-      Marker.deleteAll()
-      Marker.fetch()
-      Mem.deleteAll()
-      Mem.fetch()
+      Marker.deleteAll();
+      Marker.fetch();
+      Mem.deleteAll();
+      Mem.fetch();
     },
     onFailure(error) {
       console.log("google sign in error", error);
-    }
-  }
+    },
+  },
 };
 </script>

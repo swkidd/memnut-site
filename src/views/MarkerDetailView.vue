@@ -105,15 +105,8 @@ export default {
     gotMems(mems) {
       this.marker.mems = [...this.marker.mems, ...mems]
       Marker.update(this.marker)
-      this.mem.getMems = false 
+      this.mem.getMems = false
     },
-    goToMem(mem) {
-      const routeData = this.$router.resolve({
-        name: "memage-detail",
-        params: { id: mem.memage_id }
-      });
-      window.open(routeData.href, "_blank");
-    }
   }
 };
 </script>

@@ -108,8 +108,11 @@ export default {
             fImage.scaleX = commentMem.scaleX * scaleFactor;
             fImage.scaleY = commentMem.scaleY * scaleFactor;
             fImage.selectable = this.selectable;
-            // fImage.on("mouseup", () => {
-            // });
+            fImage.on("mouseup", () => {
+              if (this.markerMems) {
+                this.goToMem(commentMem.mem)
+              }
+            });
             this.mem.fabricImages = [
               ...this.mem.fabricImages,
               { mem: commentMem.mem, fImage }
@@ -132,6 +135,13 @@ export default {
     }
   },
   methods: {
+    goToMem(mem) {
+      const routeData = this.$router.resolve({
+        name: "memage-detail",
+        params: { id: mem.memage_id }
+      });
+      window.open(routeData.href, "_blank");
+    },
     removeFabricImages() {
       this.mem.fabricImages.forEach(fi => this.canvas.remove(fi.fImage));
       this.mem.fabricImages = [];
