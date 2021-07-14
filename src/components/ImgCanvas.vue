@@ -3,7 +3,7 @@
     ref="canContainer"
     :style="canvasWrapperStyle"
     v-resize="resizeCanvas"
-    min-width="300"
+    style="min-width: 200px; min-height: 200px;"
     elevation="0"
   >
     <v-row justify="center" class="flex-column">

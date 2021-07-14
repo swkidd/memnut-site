@@ -1,6 +1,6 @@
 <template>
   <v-app>
-    <v-app-bar :dense="$vuetify.breakpoint.mobile" max-height="60" fixed>
+    <v-app-bar :dense="$vuetify.breakpoint.mobile" max-height="60" height="60" fixed>
       <v-icon class="mx-1">mdi-tooltip-image</v-icon>
       <v-toolbar-title
         @click="$router.push({ name: 'map' })"
@@ -10,15 +10,24 @@
 
       <v-spacer></v-spacer>
 
-      <v-btn text to="memages">
-        Memages
-      </v-btn>
+      <v-menu bottom left>
+        <template v-slot:activator="{ on, attrs }">
+          <v-btn icon v-bind="attrs" v-on="on">
+            <v-icon>mdi-dots-vertical</v-icon>
+          </v-btn>
+        </template>
 
-      <google-sign-in-button class="mx-5" />
-
-      <v-btn icon>
-        <v-icon>mdi-magnify</v-icon>
-      </v-btn>
+        <v-list>
+          <v-list-item>
+            <v-btn text to="memages">
+              Memages
+            </v-btn>
+          </v-list-item>
+          <v-list-item>
+            <google-sign-in-button />
+          </v-list-item>
+        </v-list>
+      </v-menu>
     </v-app-bar>
     <v-main style="margin-top: 60px; max-height: calc(100vh - 60px);">
       <router-view />
