@@ -10,6 +10,8 @@
 
       <v-spacer></v-spacer>
 
+      <google-sign-in-button />
+
       <v-menu bottom left>
         <template v-slot:activator="{ on, attrs }">
           <v-btn icon v-bind="attrs" v-on="on">
@@ -22,9 +24,6 @@
             <v-btn text to="memages">
               Memages
             </v-btn>
-          </v-list-item>
-          <v-list-item>
-            <google-sign-in-button />
           </v-list-item>
         </v-list>
       </v-menu>

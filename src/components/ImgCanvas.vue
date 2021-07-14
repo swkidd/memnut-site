@@ -159,9 +159,6 @@ export default {
     },
     getWidth() {
       return this.$refs.canContainer.$el.clientWidth;
-      // return this.$vuetify.breakpoint.mobile
-      //   ? this.$vuetify.breakpoint.width
-      //   : this.$refs.canContainer.$el.clientWidth;
     },
     resizeCanvas() {
       if (this.canvas) {
