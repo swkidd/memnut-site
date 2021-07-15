@@ -21,6 +21,7 @@
                 label="Add Mems"
                 multiple
                 outlined
+                deletable-chips
                 return-object
               >
                 <template v-slot:selection="data">
@@ -100,7 +101,7 @@ export default {
         return this.value.map(markerMem => markerMem.mem);
       },
       set(val) {
-        if (val) {
+        if (val && !this.mem.getMems) {
           // trigger imgCanvas to emit markerMems (keep fabric in imgCanvas)
           this.mem.getMems = true;
         }
@@ -112,7 +113,7 @@ export default {
         return this.value;
       },
       set(val) {
-        if (val) {
+        if (val && !this.mem.getMems) {
           // trigger imgCanvas to emit markerMems (keep fabric in imgCanvas)
           this.mem.getMems = true;
         }
