@@ -15,6 +15,7 @@ export default class Memage extends Model {
       image: this.attr(null),
       mem_ids: this.attr([]),
       mems: this.hasManyBy(Mem, "mem_ids"),
+      keys: this.attr([]),
     };
   }
 
@@ -40,9 +41,7 @@ export default class Memage extends Model {
   //     fetch(
   //       `https://v5g7mgbgs6.execute-api.ap-northeast-1.amazonaws.com/api/markers/${id}`,
   //       {
-  //         headers: new Headers({
-  //           Authorization: accessToken,
-  //           "Content-Type": "application/json"
+  //         headers: new Headers({b7046b0e-776d-4d33-8b31-2ca9513ee73b
   //         })
   //       }
   //     )
