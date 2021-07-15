@@ -51,8 +51,13 @@ export default class Mem extends Model {
     Api.uploadImage(file).then((imageKey) => {
       if (imageKey) {
         mem.image_key = imageKey;
-        Api.call("PUT", "mems", mem).then(() => {
-          Mem.insert({ data: mem });
+        Api.call("PUT", "mems", mem).then((memWithID) => {
+          Mem.insert({ data: memWithID });
+          const memage = Memage.query()
+            .where("id", memWithID.memage_id)
+            .first();
+          memage.mem_ids = [...memage.mem_ids, memWithID.id];
+          Memage.update(memage);
         });
         setTimeout(() => {
           Mem.deleteAll();
@@ -63,8 +68,13 @@ export default class Mem extends Model {
   }
 
   static put(mem) {
-    Api.call("PUT", "mems", mem).then((resp) => {
-      Mem.insert({ data: resp });
+    Api.call("PUT", "mems", mem).then((memWithID) => {
+      Mem.insert({ data: memWithID });
+      const memage = Memage.query()
+        .where("id", memWithID.memage_id)
+        .first();
+      memage.mem_ids = [...memage.mem_ids, memWithID.id];
+      Memage.update(memage);
     });
   }
 }

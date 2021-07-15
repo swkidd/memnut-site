@@ -15,7 +15,6 @@ export default class Memage extends Model {
       image: this.attr(null),
       mem_ids: this.attr([]),
       mems: this.hasManyBy(Mem, "mem_ids"),
-      keys: this.attr([]),
     };
   }
 
@@ -33,6 +32,12 @@ export default class Memage extends Model {
         }
       })
     );
+  }
+  
+  static update(memage) {
+    Api.call("PUT", `memages/${memage.id}`, memage).then(() => {
+      Memage.insert({ data: memage });
+    });
   }
 
   // static fetchById(id) {

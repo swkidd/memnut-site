@@ -170,8 +170,8 @@ export default {
   props: {
     id: {
       type: String,
-      required: true,
-    },
+      required: true
+    }
   },
   data() {
     return {
@@ -184,11 +184,11 @@ export default {
         dialog: false,
         wholeImage: false,
         selected: [],
-        fabricImages: [],
+        fabricImages: []
       },
       comment: {
         dialog: false,
-        current: null,
+        current: null
       },
       canvas: null,
       url: null,
@@ -197,7 +197,7 @@ export default {
       back: "",
       dialog: false,
       canvasWidth: 0,
-      canvasHeight: 0,
+      canvasHeight: 0
     };
   },
   created() {
@@ -231,7 +231,7 @@ export default {
         .where("id", this.id)
         .with("creator")
         .first();
-    },
+    }
   },
   watch: {
     // '$vuetify.breakpoint.width' () {
@@ -248,13 +248,13 @@ export default {
         this.url = url;
         this.imageAdded = true;
       }
-    },
+    }
   },
   methods: {
     goToMem(mem) {
       const routeData = this.$router.resolve({
         name: "memage-detail",
-        params: { id: mem.memage_id },
+        params: { id: mem.memage_id }
       });
       window.open(routeData.href, "_blank");
     },
@@ -265,10 +265,11 @@ export default {
     startOutline() {
       if (this.mem.wholeImage) {
         this.submit();
+        this.dialog = false
       } else {
         this.isCreateMem = true;
         this.dialog = false;
-        this.mem.selected.forEach((mem) => {
+        this.mem.selected.forEach(mem => {
           const image = new Image();
           image.src = mem.image;
           image.onload = () => {
@@ -285,14 +286,14 @@ export default {
     },
     commentClick(commentIndices) {
       this.removeFabricImages();
-      commentIndices.forEach((commentIndex) => {
+      commentIndices.forEach(commentIndex => {
         const comment = this.mems[commentIndex];
         if (!comment.polygon) {
           this.comment.current = comment;
           this.comment.dialog = true;
         } else {
-          fabric.util.enlivenObjects([comment.polygon], (enlivenedObjects) => {
-            enlivenedObjects.forEach((obj) => {
+          fabric.util.enlivenObjects([comment.polygon], enlivenedObjects => {
+            enlivenedObjects.forEach(obj => {
               const scaleFactor = this.canvasWidth / comment.width;
               obj.left = obj.left * scaleFactor;
               obj.top = obj.top * scaleFactor;
@@ -341,7 +342,7 @@ export default {
     initCanvas(url) {
       fabric.Image.fromURL(
         url,
-        (img) => {
+        img => {
           const ref = this.$refs.can;
 
           this.canvasWidth = this.getWidth;
@@ -354,7 +355,7 @@ export default {
             width: this.canvasWidth,
             height: this.canvasHeight,
             preserveObjectStacking: true,
-            allowTouchScrolling: true,
+            allowTouchScrolling: true
           });
           this.canvas = canvas;
 
@@ -371,7 +372,7 @@ export default {
     },
     initCanvasEvents() {
       this.canvas.on({
-        "mouse:up": (event) => {
+        "mouse:up": event => {
           if (!this.isCreatePoints) return;
           var pointer = this.canvas.getPointer(event.e);
           var positionX = pointer.x;
@@ -387,33 +388,33 @@ export default {
             originY: "center",
             hoverCursor: "auto",
             strokeWidth: "2",
-            stroke: "black",
+            stroke: "black"
           });
           this.canvas.add(circlePoint);
           this.points = [...this.points, circlePoint];
           this.canvas.bringToFront(circlePoint);
           this.isCreatePoints = false;
-        },
+        }
       });
     },
     clearPoints() {
-      this.points.forEach((point) => this.canvas.remove(point));
+      this.points.forEach(point => this.canvas.remove(point));
       this.points = [];
     },
     removeFabricImages() {
-      this.mem.fabricImages.forEach((fi) => this.canvas.remove(fi.fImage));
+      this.mem.fabricImages.forEach(fi => this.canvas.remove(fi.fImage));
       this.mem.fabricImages = [];
       this.canvas.renderAll();
     },
     createPolygon() {
       this.points = [...this.points, fabric.util.object.clone(this.points[0])];
       var poly = new fabric.Polygon(
-        this.points.map((point) => point.getCenterPoint()),
+        this.points.map(point => point.getCenterPoint()),
         {
           stroke: "black",
           strokeWidth: "5",
           fill: "transparent",
-          selectable: false,
+          selectable: false
         }
       );
       this.clearPoints();
@@ -451,11 +452,11 @@ export default {
         const obj = this.polygon;
         const f = new fabric.StaticCanvas(null, {
           width: obj.width,
-          height: obj.height,
+          height: obj.height
         });
         const images = this.canvas
           .getObjects()
-          .filter((o) => o.get("type") === "image");
+          .filter(o => o.get("type") === "image");
 
         if (images.length > 0) {
           const image = images[0];
@@ -469,11 +470,11 @@ export default {
             top: 0,
             scaleX: obj.scaleX,
             scaleY: obj.scaleY,
-            absolutePositioned: true,
+            absolutePositioned: true
           });
 
           const memImage = f.toDataURL({
-            format: "image/webp",
+            format: "image/webp"
           });
 
           const mem = {
@@ -482,12 +483,12 @@ export default {
             front: this.front,
             back: this.back,
             width: this.canvasWidth,
-            polygon: this.polygon,
+            polygon: this.polygon
           };
 
           fetch(memImage)
-            .then((r) => r.blob())
-            .then((blob) => Mem.uploadMem(mem, blob));
+            .then(r => r.blob())
+            .then(blob => Mem.uploadMem(mem, blob));
         }
       } else if (this.mem.wholeImage) {
         const mem = {
@@ -497,7 +498,7 @@ export default {
           front: this.front,
           back: this.back,
           width: this.canvasWidth,
-          polygon: this.polygon,
+          polygon: this.polygon
         };
 
         Mem.put(mem);
@@ -516,8 +517,8 @@ export default {
       this.clearPoints();
       this.isCreatePoints = false;
       this.isCreateMem = false;
-    },
-  },
+    }
+  }
 };
 </script>
 

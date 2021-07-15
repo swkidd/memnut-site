@@ -12,6 +12,15 @@
       @change="addMemage"
     />
     <v-col cols="12" sm="6" offset-sm="3" class="my-5">
+      <v-text-field
+        v-model="search"
+        label="Search..."
+        solo
+        outlined
+        append-icon="mdi-magnify"
+        @click:append="filterItems(search)"
+        @keyup.enter="filterItems(search)"
+      />
       <v-card v-if="memages.length">
         <v-container fluid>
           <v-row>
@@ -51,22 +60,46 @@
 </template>
 
 <script>
+import Mem from "@/models/Mem";
 import Memage from "@/models/Memage";
 export default {
   data() {
     return {
       dialog: false,
+      search: "",
+      validSearch: ""
     };
   },
   created() {
+    Mem.fetch()
     Memage.fetch();
   },
   computed: {
     memages() {
-      return Memage.all();
-    },
+      return Memage.query()
+        .withAllRecursive()
+        .get()
+        .filter(memage => {
+          const s = this.validSearch.toLowerCase()
+          if (s === "") return true
+          return memage.mems.some(mem => {
+            return mem.front.toLowerCase().includes(s) ||
+              mem.back.toLowerCase().includes(s);
+          });
+        })
+    }
+  },
+  watch: {
+    search(val) {
+      if (val === "") {
+        this.validSearch = "";
+      }
+    }
   },
   methods: {
+    filterItems(search) {
+      this.validSearch = search;
+    },
     goToMemage(id) {
       const routeData = this.$router.resolve({
         name: "memage-detail",
@@ -79,8 +112,8 @@ export default {
     },
     addMemage(file) {
       Memage.uploadMemage(file);
-    },
-  },
+    }
+  }
 };
 </script>
 
