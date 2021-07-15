@@ -5,7 +5,7 @@
         <v-col style="max-width: 700px;">
           <img-canvas
             :url="marker.image"
-            :mems="mem.selected"
+            :mems="markerMems"
             :getMems="mem.getMems"
             @gotMems="gotMems($event)"
             selectable
@@ -15,8 +15,8 @@
           <v-row class="flex-column">
             <v-col>
               <v-autocomplete
-                v-model="mem.selected"
-                :items="mems"
+                v-model="mems"
+                :items="allMems"
                 item-text="id"
                 label="Add Mems"
                 multiple
@@ -58,13 +58,16 @@
 </template>
 
 <script>
-import Marker from "@/models/Marker";
 import Mem from "@/models/Mem";
-import ImgCanvas from "../components/ImgCanvas.vue";
 export default {
-  components: { ImgCanvas },
+  components: { ImgCanvas: () => import("@/components/ImgCanvas") },
   name: "MarkerDetailView",
   props: {
+    // markerMems
+    value: {
+      type: Array,
+      required: false
+    },
     marker: {
       type: Object,
       required: false
@@ -78,7 +81,7 @@ export default {
       canvasHeight: 0,
       mem: {
         getMems: false,
-        selected: [],
+        selected: []
       }
     };
   },
@@ -86,11 +89,34 @@ export default {
     Mem.fetch();
   },
   computed: {
-    mems() {
+    allMems() {
       return Mem.query()
-        .with("creator")
-        .with("marker")
+        .withAllRecursive()
         .get();
+    },
+    mems: {
+      get() {
+        // for autocomplete v-model
+        return this.value.map(markerMem => markerMem.mem);
+      },
+      set(val) {
+        if (val) {
+          // trigger imgCanvas to emit markerMems (keep fabric in imgCanvas)
+          this.mem.getMems = true;
+        }
+      }
+    },
+    markerMems: {
+      get() {
+        // v-model is markerMems while autocomplete and imgCanvas accepts mems
+        return this.value;
+      },
+      set(val) {
+        if (val) {
+          // trigger imgCanvas to emit markerMems (keep fabric in imgCanvas)
+          this.mem.getMems = true;
+        }
+      }
     },
     hasMems() {
       return this.mems.length > 0;
@@ -98,15 +124,13 @@ export default {
   },
   methods: {
     doneAddingMems() {
-      this.mem.getMems = true
-      this.$emit("dialog", false)
-      this.mem.selected = []
+      this.$emit("dialog", false);
+      this.mem.selected = [];
     },
     gotMems(mems) {
-      this.marker.mems = [...this.marker.mems, ...mems]
-      Marker.update(this.marker)
-      this.mem.getMems = false
-    },
+      this.$emit("input", mems);
+      this.mem.getMems = false;
+    }
   }
 };
 </script>

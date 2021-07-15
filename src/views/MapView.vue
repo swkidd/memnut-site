@@ -3,6 +3,7 @@
     <v-dialog v-model="addMemDialog" scrollable>
       <marker-detail-view
         v-if="currentMarker"
+        v-model="currentMarker.mems"
         :marker="currentMarker"
         :key="currentMarker.id"
         @dialog="addMemDialog = $event"
@@ -38,44 +39,17 @@
     >
       <v-card v-if="currentMarker" class="mx-auto my-12" elevation="0">
         <v-card-text>
-          <img-canvas :url="currentMarker.image" :mems="mems" marker-mems />
-          <!-- <v-item-group multiple @change="commentClick($event)">
-            <v-item
-              v-slot="{ active, toggle }"
-              v-for="(comment, i) in currentMarker.mems"
-              :key="i"
-            >
-              <v-card
-                :color="active ? 'primary' : 'default'"
-                class="mb-3 text-center"
-                width="100%"
-                @click="toggle"
-              >
-                <v-card-title>
-                  <v-list-item>
-                    <v-list-item-avatar color="grey darken-3">
-                      <v-img
-                        class="elevation-6"
-                        :src="comment.mem.image"
-                      ></v-img>
-                    </v-list-item-avatar>
-
-                    <v-list-item-content>
-                      <v-list-item-title
-                        class="text-left"
-                        v-text="comment.mem.front"
-                      />
-                    </v-list-item-content>
-                  </v-list-item>
-                </v-card-title>
-              </v-card>
-            </v-item>
-          </v-item-group> -->
+          <v-text-field v-model="currentMarker.title" label="Marker title..." outlined />
+          <img-canvas :url="currentMarker.image" :mems="currentMarker.mems" />
+          <v-textarea v-model="currentMarker.text" label="Marker text..." outlined />
         </v-card-text>
         <v-card-actions>
           <v-row justify="center" class="flex-column">
             <v-btn text @click="addMem(false)">
-              Add Mem
+              Edit Mems 
+            </v-btn>
+            <v-btn text @click="saveMarker(currentMarker)" class="mb-5">
+              Save Marker
             </v-btn>
             <v-btn text color="warning" @click="deleteDialog = true">
               Delete Marker
@@ -97,7 +71,7 @@
       fab
       class="floating-button"
       :style="floatingButtonStyle"
-      @click="showImageUpload(true)"
+      @click="showImageUpload"
     >
       <v-icon>mdi-image-outline</v-icon>
     </v-btn>
@@ -144,7 +118,6 @@ export default {
       markerId: null,
       following: false,
       clickable: false,
-      // mems: [], // commented out commentClick to show all marker mems, added computed prop
     };
   },
   computed: {
@@ -153,12 +126,6 @@ export default {
         .where("id", this.markerId)
         .withAllRecursive()
         .first();
-    },
-    mems() {
-      if (this.markerId) {
-        return this.currentMarker.mems;
-      }
-      return [];
     },
     mapStyle() {
       return this.$vuetify.breakpoint.mobile
@@ -200,11 +167,6 @@ export default {
       this.markerId = id;
       this.navDrawer = true;
     },
-    commentClick(commentIndices) {
-      this.mems = this.currentMarker.mems.filter((_, index) =>
-        commentIndices.includes(index)
-      );
-    },
     addMem() {
       this.addMemDialog = true;
     },
@@ -221,18 +183,12 @@ export default {
       this.currentMarker = null;
       this.deleteDialog = false;
     },
-    showImageUpload(isMarkerImage) {
+    showImageUpload() {
       this.$refs.imageUpload.$refs.input.click();
-      this.isMarkerImage = isMarkerImage;
     },
     addImage(file) {
       this.file = file;
-      if (this.isMarkerImage) {
         this.clickable = true;
-        this.isMarkerImage = false;
-      } else {
-        // this.addImageToMarker(this.currentMarker);
-      }
     },
     keydown(e) {
       this.$emit("keydown", e);
@@ -251,9 +207,9 @@ export default {
       }
       this.navDrawer = false;
     },
-    // addImageToMarker(marker) {
-    // Marker.addImageToMarker(marker, this.image, this.fileType);
-    // }
+    saveMarker(marker) {
+      Marker.update(marker)
+    }
   },
 };
 </script>

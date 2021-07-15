@@ -28,11 +28,6 @@ export default {
       required: false,
       default: false,
     },
-    markerMems: {
-      type: Boolean,
-      required: false,
-      default: false,
-    },
     mems: {
       type: Array,
       required: false,
@@ -106,40 +101,28 @@ export default {
   },
   methods: {
     initMems (mems) {
-      if (mems && this.markerMems) {
+      if (mems) {
         this.removeFabricImages();
-        // markermems
         mems.forEach((commentMem) => {
           const image = new Image();
           image.src = commentMem.mem.image;
           image.onload = () => {
             const fImage = new fabric.Image(image);
-            const scaleFactor = this.canvasWidth / commentMem.width;
-            fImage.top = commentMem.top * scaleFactor;
-            fImage.left = commentMem.left * scaleFactor;
-            fImage.scaleX = commentMem.scaleX * scaleFactor;
-            fImage.scaleY = commentMem.scaleY * scaleFactor;
+            const scaleFactor = this.canvasWidth / (commentMem.width || 1);
+            fImage.top = (commentMem.top || 0 ) * scaleFactor;
+            fImage.left = (commentMem.left || 0 ) * scaleFactor;
+            fImage.scaleX = (commentMem.scaleX || 1 ) * scaleFactor;
+            fImage.scaleY = (commentMem.scaleY || 1 ) * scaleFactor;
             fImage.selectable = this.selectable;
             fImage.on("mouseup", () => {
-              if (this.markerMems) {
-                this.goToMem(commentMem.mem);
+              if (!this.selectable) {
+                this.goToMem(commentMem.mem || commentMem);
               }
             });
             this.mem.fabricImages = [
               ...this.mem.fabricImages,
               { mem: commentMem.mem, fImage },
             ];
-            this.canvas.add(fImage);
-          };
-        });
-      } else if (mems) {
-        mems.forEach((mem) => {
-          const image = new Image();
-          image.src = mem.image;
-          image.onload = () => {
-            const fImage = new fabric.Image(image);
-            fImage.scaleToWidth(200);
-            this.mem.fabricImages = [...this.mem.fabricImages, { mem, fImage }];
             this.canvas.add(fImage);
           };
         });

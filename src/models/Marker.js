@@ -16,6 +16,8 @@ export default class Marker extends Model {
       image: this.attr(null),
       mem_ids: this.attr([]),
       mems: this.hasManyBy(MarkerMem, "mem_ids"),
+      title: this.attr(null),
+      text: this.attr(null),
     };
   }
 
