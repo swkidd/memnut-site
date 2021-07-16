@@ -21,7 +21,6 @@
                 label="Add Mems"
                 multiple
                 outlined
-                deletable-chips
                 return-object
               >
                 <template v-slot:selection="data">
@@ -67,12 +66,12 @@ export default {
     // markerMems
     value: {
       type: Array,
-      required: false
+      required: false,
     },
     marker: {
       type: Object,
-      required: false
-    }
+      required: false,
+    },
   },
   data() {
     return {
@@ -82,8 +81,9 @@ export default {
       canvasHeight: 0,
       mem: {
         getMems: false,
-        selected: []
-      }
+        selected: [],
+      },
+      memIds: this.value.map(markerMem => markerMem.mem.id),
     };
   },
   created() {
@@ -98,30 +98,35 @@ export default {
     mems: {
       get() {
         // for autocomplete v-model
-        return this.value.map(markerMem => markerMem.mem);
+        return this.value
+          .map((markerMem) => markerMem.mem)
+          .filter(mem => this.memIds.includes(mem.id));
       },
       set(val) {
         if (val && !this.mem.getMems) {
+          this.memIds = val.map(val => val.id)
           // trigger imgCanvas to emit markerMems (keep fabric in imgCanvas)
           this.mem.getMems = true;
         }
-      }
+      },
     },
     markerMems: {
       get() {
         // v-model is markerMems while autocomplete and imgCanvas accepts mems
-        return this.value;
+        return this.value.filter((markerMem) =>
+          this.memIds.includes(markerMem.mem.id)
+        );
       },
       set(val) {
         if (val && !this.mem.getMems) {
           // trigger imgCanvas to emit markerMems (keep fabric in imgCanvas)
           this.mem.getMems = true;
         }
-      }
+      },
     },
     hasMems() {
       return this.mems.length > 0;
-    }
+    },
   },
   methods: {
     doneAddingMems() {
@@ -131,8 +136,8 @@ export default {
     gotMems(mems) {
       this.$emit("input", mems);
       this.mem.getMems = false;
-    }
-  }
+    },
+  },
 };
 </script>
 

@@ -5,7 +5,6 @@
         v-if="currentMarker"
         v-model="currentMarker.mems"
         :marker="currentMarker"
-        :key="currentMarker.id"
         @dialog="addMemDialog = $event"
       />
     </v-dialog>
@@ -46,7 +45,7 @@
         <v-card-actions>
           <v-row justify="center" class="flex-column">
             <v-btn text @click="addMem(false)">
-              Edit Mems 
+              Edit Mems
             </v-btn>
             <v-btn text @click="saveMarker(currentMarker)" class="mb-5">
               Save Marker
