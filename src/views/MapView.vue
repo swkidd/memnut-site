@@ -1,5 +1,5 @@
 <template>
-  <div class="text-center fill-height" style="overflow: hidden;">
+  <div v-if="palace" class="text-center fill-height" style="overflow: hidden;">
     <v-dialog v-model="addMemDialog" scrollable>
       <marker-detail-view
         v-if="currentMarker"
@@ -38,9 +38,17 @@
     >
       <v-card v-if="currentMarker" class="mx-auto my-12" elevation="0">
         <v-card-text>
-          <v-text-field v-model="currentMarker.title" label="Marker title..." outlined />
+          <v-text-field
+            v-model="currentMarker.title"
+            label="Marker title..."
+            outlined
+          />
           <img-canvas :url="currentMarker.image" :mems="currentMarker.mems" />
-          <v-textarea v-model="currentMarker.text" label="Marker text..." outlined />
+          <v-textarea
+            v-model="currentMarker.text"
+            label="Marker text..."
+            outlined
+          />
         </v-card-text>
         <v-card-actions>
           <v-row justify="center" class="flex-column">
@@ -85,6 +93,7 @@
     <main-map
       :following="following"
       :navDrawer="navDrawer"
+      :markers="palace.markers"
       @click="mapClick($event)"
       @markerClick="markerClick($event)"
       :style="mapStyle"
@@ -98,6 +107,7 @@
 </template>
 
 <script>
+import Palace from "@/models/Palace";
 import Marker from "@/models/Marker";
 export default {
   name: "MapView",
@@ -109,6 +119,12 @@ export default {
   beforeCreate: function() {
     document.body.classList.add("overflow-hidden");
   },
+  props: {
+    id: {
+      type: String,
+      required: true,
+    },
+  },
   data() {
     return {
       navDrawer: false,
@@ -119,7 +135,18 @@ export default {
       clickable: false,
     };
   },
+  mounted() {
+    if (!this.id) {
+      this.id = this.$router.params.id;
+    }
+  },
   computed: {
+    palace() {
+      return Palace.query()
+        .with("markers")
+        .where("id", this.id)
+        .first();
+    },
     currentMarker() {
       return Marker.query()
         .where("id", this.markerId)
@@ -187,7 +214,7 @@ export default {
     },
     addImage(file) {
       this.file = file;
-        this.clickable = true;
+      this.clickable = true;
     },
     keydown(e) {
       this.$emit("keydown", e);
@@ -200,6 +227,7 @@ export default {
         const marker = {
           latlng: e.latlng,
           image: this.image,
+          palace_id: this.palace.id,
         };
         Marker.uploadMarker(marker, this.file);
         this.clickable = false;
@@ -207,8 +235,9 @@ export default {
       this.navDrawer = false;
     },
     saveMarker(marker) {
-      Marker.update(marker)
-    }
+      Marker.update(marker);
+      this.navDrawer = false;
+    },
   },
 };
 </script>

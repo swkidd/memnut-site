@@ -2,6 +2,7 @@ import { Model } from "@vuex-orm/core";
 import Api from "@/plugins/api";
 import User from "@/models/User";
 import MarkerMem from "@/models/MarkerMem";
+import Palace from "@/models/Palace";
 
 export default class Marker extends Model {
   static entity = "markers";
@@ -9,6 +10,9 @@ export default class Marker extends Model {
   static fields() {
     return {
       id: this.attr(null),
+      order: this.attr(null),
+      palace_id: this.attr(null),
+      palace: this.belongsTo(Palace, "palace_id"),
       creator_id: this.attr(null),
       creator: this.belongsTo(User, "creator_id"),
       latlng: this.attr(null),
@@ -39,8 +43,13 @@ export default class Marker extends Model {
     Api.uploadImage(file).then((imageKey) => {
       if (imageKey) {
         marker.image_key = imageKey;
-        Api.call("PUT", "markers", marker).then(() => {
-          Marker.insert({ data: marker });
+        Api.call("PUT", "markers", marker).then(markerWithID => {
+          Marker.insert({ data: markerWithID });
+          const palace = Palace.query()
+            .where("id", marker.palace_id)
+            .first();
+          palace.marker_ids = [...palace.marker_ids, markerWithID.id];
+          Palace.update(palace);
         });
         setTimeout(() => {
           Marker.deleteAll();

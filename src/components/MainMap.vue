@@ -11,32 +11,11 @@
       <l-tile-layer :url="url" :attribution="attribution" />
       <l-marker
         :ref="`marker${marker.id}`"
-        v-for="(marker, i) in markers.filter(m => m.latlng)"
+        v-for="(marker, i) in markers"
         :key="i"
         :lat-lng="marker.latlng"
         @click="markerClick(marker)"
-      >
-        >
-        <!-- <l-popup v-if="marker.image">
-          <v-card class="mx-auto my-12" max-width="374" elevation="0">
-            <v-img height="150" class="ma-5" :src="marker.image" />
-            <v-card-actions>
-              <v-spacer />
-              <v-btn
-                text
-                @click="
-                  $router.push({
-                    name: 'marker-detail',
-                    params: { id: marker.id }
-                  })
-                "
-              >
-                View
-              </v-btn>
-            </v-card-actions>
-          </v-card>
-        </l-popup> -->
-      </l-marker>
+      />
     </l-map>
     <v-card
       justify="start"
@@ -62,7 +41,6 @@
 </template>
 
 <script>
-import Marker from "@/models/Marker";
 import { LMap, LTileLayer, LMarker } from "vue2-leaflet";
 import L from "leaflet";
 
@@ -71,19 +49,24 @@ export default {
   components: {
     LMap,
     LTileLayer,
-    LMarker
+    LMarker,
   },
   props: {
+    markers: {
+      type: Array,
+      required: false,
+      default: () => [],
+    },
     navDrawer: {
       type: Boolean,
       required: false,
-      default: false
+      default: false,
     },
     following: {
       type: Boolean,
       required: false,
-      default: false
-    }
+      default: false,
+    },
   },
   data() {
     return {
@@ -93,11 +76,11 @@ export default {
         is: false,
         interval: null,
         marker: null,
-        circle: null
+        circle: null,
       },
       url: "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
       attribution:
-        '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
+        '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors',
     };
   },
   watch: {
@@ -107,30 +90,27 @@ export default {
       } else if (!val && this.follow.is) {
         this.stopFollowing();
       }
-    }
+    },
   },
   computed: {
     scrollStyles() {
       return this.$vuetify.breakpoint.mobile
         ? {
             maxWidth: "225px",
-            left: "10px"
+            left: "10px",
           }
         : this.navDrawer
         ? {
             maxWidth: "500px",
             left: "75%",
-            transform: "translateX(-50%)"
+            transform: "translateX(-50%)",
           }
         : {
             maxWidth: "500px",
             left: "50%",
-            transform: "translateX(-50%)"
+            transform: "translateX(-50%)",
           };
     },
-    markers() {
-      return Marker.query().withAllRecursive().get();
-    }
   },
   methods: {
     markerClick(marker) {
@@ -185,8 +165,8 @@ export default {
     },
     mapClick(e) {
       this.$emit("click", e);
-    }
-  }
+    },
+  },
 };
 </script>
 <style scoped>

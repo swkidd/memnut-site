@@ -2,6 +2,7 @@
   <div id="google-sign-in" v-bind="$attrs" />
 </template>
 <script>
+import Palace from "@/models/Palace";
 import Marker from "@/models/Marker";
 import MarkerMem from "@/models/MarkerMem";
 import Mem from "@/models/Mem";
@@ -39,6 +40,8 @@ export default {
       sessionStorage.setItem("access_token", id_token);
 
       // fetch data on login
+      Palace.deleteAll();
+      Palace.fetch();
       Mem.deleteAll();
       Mem.fetch();
       Marker.deleteAll();

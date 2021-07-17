@@ -71,6 +71,7 @@ export default {
     };
   },
   created() {
+    console.log('hello')
     Mem.fetch()
     Memage.fetch();
   },

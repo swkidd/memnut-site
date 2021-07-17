@@ -14,7 +14,6 @@
           fab
           class="floating-button"
           style="bottom: 100px; right: 25px;"
-          @click="mem.dialog = true"
         >
           M
         </v-btn>
