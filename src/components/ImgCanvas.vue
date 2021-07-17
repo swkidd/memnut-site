@@ -145,10 +145,13 @@ export default {
       return this.$refs.canContainer.$el.clientWidth;
     },
     resizeCanvas() {
+      const width = this.getWidth();
+      console.log('resize called')
+      if (Math.abs(width - this.canvasWidth) < 200 || width < 100) return
       if (this.canvas) {
+        console.log('resize done')
         const mems = this.mem.fabricImages.map((fi) => fi.markerMem);
         this.removeFabricImages();
-        const width = this.getWidth();
         this.canvasWidth = width;
         this.canvas.getObjects().forEach((obj) => {
           if (obj.get("type") === "image") {
