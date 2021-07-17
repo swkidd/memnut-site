@@ -3,8 +3,8 @@
     <v-dialog v-model="addMemDialog" scrollable>
       <marker-detail-view
         v-if="currentMarker"
-        v-model="currentMarker.mems"
         :marker="currentMarker"
+        :dialog="addMemDialog"
         @dialog="addMemDialog = $event"
       />
     </v-dialog>

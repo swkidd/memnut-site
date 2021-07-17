@@ -3,6 +3,7 @@
 </template>
 <script>
 import Marker from "@/models/Marker";
+import MarkerMem from "@/models/MarkerMem";
 import Mem from "@/models/Mem";
 export default {
   name: "GoogleSignInButton",
@@ -42,6 +43,8 @@ export default {
       Mem.fetch();
       Marker.deleteAll();
       Marker.fetch();
+      MarkerMem.deleteAll();
+      MarkerMem.fetch();
     },
     onFailure(error) {
       console.log("google sign in error", error);

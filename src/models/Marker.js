@@ -51,8 +51,18 @@ export default class Marker extends Model {
   }
 
   static update(marker) {
-    Api.call("PUT", `markers/${marker.id}`, marker).then(() => {
-      Marker.insert({ data: marker });
+    const promises = [];
+    marker.mems.forEach((markerMem) => {
+      if (markerMem.id.includes("$uid")) {
+        markerMem.id = undefined;
+      }
+      promises.push(MarkerMem.put(markerMem));
+    });
+    Promise.all(promises).then((markerMems) => {
+      marker.mem_ids = markerMems.map((m) => m.id);
+      Api.call("PUT", "markers", marker).then(() => {
+        Marker.insert({ data: marker });
+      });
     });
   }
 

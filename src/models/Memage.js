@@ -33,9 +33,9 @@ export default class Memage extends Model {
       })
     );
   }
-  
+
   static update(memage) {
-    Api.call("PUT", `memages/${memage.id}`, memage).then(() => {
+    Api.call("PUT", "memages", memage).then(() => {
       Memage.insert({ data: memage });
     });
   }

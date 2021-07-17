@@ -5,8 +5,8 @@
         <v-col style="max-width: 700px;">
           <img-canvas
             :url="marker.image"
-            :mems="markerMems"
-            :getMems="mem.getMems"
+            :mems="marker.mems"
+            :getMems="getMems"
             @gotMems="gotMems($event)"
             selectable
           />
@@ -58,16 +58,18 @@
 </template>
 
 <script>
+import Marker from "@/models/Marker";
 import Mem from "@/models/Mem";
 export default {
   components: { ImgCanvas: () => import("@/components/ImgCanvas") },
   name: "MarkerDetailView",
   props: {
-    // markerMems
-    value: {
-      type: Array,
+    dialog: {
+      type: Boolean,
       required: false,
+      default: false,
     },
+    // markerMems
     marker: {
       type: Object,
       required: false,
@@ -79,15 +81,18 @@ export default {
       url: null,
       canvasWidth: 0,
       canvasHeight: 0,
-      mem: {
-        getMems: false,
-        selected: [],
-      },
-      memIds: this.value.map(markerMem => markerMem.mem.id),
+      getMems: false,
     };
   },
   created() {
     Mem.fetch();
+  },
+  watch: {
+    dialog (newVal, oldVal) {
+      if (!newVal && oldVal) {
+        this.getMems = true;
+      }
+    }
   },
   computed: {
     allMems() {
@@ -97,31 +102,26 @@ export default {
     },
     mems: {
       get() {
-        // for autocomplete v-model
-        return this.value
-          .map((markerMem) => markerMem.mem)
-          .filter(mem => this.memIds.includes(mem.id));
+        return this.marker.mems.map((markerMem) => markerMem.mem);
       },
       set(val) {
-        if (val && !this.mem.getMems) {
-          this.memIds = val.map(val => val.id)
-          // trigger imgCanvas to emit markerMems (keep fabric in imgCanvas)
-          this.mem.getMems = true;
-        }
-      },
-    },
-    markerMems: {
-      get() {
-        // v-model is markerMems while autocomplete and imgCanvas accepts mems
-        return this.value.filter((markerMem) =>
-          this.memIds.includes(markerMem.mem.id)
-        );
-      },
-      set(val) {
-        if (val && !this.mem.getMems) {
-          // trigger imgCanvas to emit markerMems (keep fabric in imgCanvas)
-          this.mem.getMems = true;
-        }
+        const currIds = this.marker.mems.map((v) => v.mem.id);
+        const newMems = val.filter((mem) => !currIds.includes(mem.id));
+        if (newMems.length === 0) return
+        this.marker.mems = [
+          ...this.marker.mems,
+          ...newMems.map((mem, i) => ({
+            order: this.marker.mems.length + i,
+            mem_id: mem.id,
+            mem,
+            left: 0,
+            top: 0,
+            scaleX: 1,
+            scaleY: 1,
+            width: null,
+          })),
+        ]
+        Marker.insert({ data: this.marker })
       },
     },
     hasMems() {
@@ -131,11 +131,11 @@ export default {
   methods: {
     doneAddingMems() {
       this.$emit("dialog", false);
-      this.mem.selected = [];
     },
     gotMems(mems) {
-      this.$emit("input", mems);
-      this.mem.getMems = false;
+      this.marker.mems = mems
+      Marker.insert({ data: this.marker })
+      this.getMems = false;
     },
   },
 };

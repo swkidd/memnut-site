@@ -75,6 +75,7 @@ export default {
             };
           })
         );
+        this.removeFabricImages();
       }
     },
     url: {
@@ -101,7 +102,12 @@ export default {
           image.src = markerMem.mem.image;
           image.onload = () => {
             const fImage = new fabric.Image(image);
-            const scaleFactor = this.canvasWidth / markerMem.width;
+            let scaleFactor;
+            if (markerMem.width) {
+              scaleFactor = this.canvasWidth / markerMem.width;
+            } else {
+              scaleFactor = 1;
+            }
             fImage.top = markerMem.top * scaleFactor;
             fImage.left = markerMem.left * scaleFactor;
             fImage.scaleX = markerMem.scaleX * scaleFactor;
@@ -132,6 +138,7 @@ export default {
       this.mem.fabricImages.forEach((fi) => {
         this.canvas.remove(fi.fImage);
       });
+      this.mem.fabricImages = []
       this.canvas.renderAll();
     },
     getWidth() {
@@ -139,8 +146,8 @@ export default {
     },
     resizeCanvas() {
       if (this.canvas) {
-        const mems = this.mem.fabricImages.map(fi => fi.markerMem)
-        this.removeFabricImages()
+        const mems = this.mem.fabricImages.map((fi) => fi.markerMem);
+        this.removeFabricImages();
         const width = this.getWidth();
         this.canvasWidth = width;
         this.canvas.getObjects().forEach((obj) => {
@@ -153,7 +160,7 @@ export default {
           width: this.canvasWidth,
           height: this.canvasHeight,
         });
-        this.initMems(mems)
+        this.initMems(mems);
       }
     },
     initCanvas(url) {
