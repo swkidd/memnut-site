@@ -22,7 +22,7 @@ const routes = [
     component: () => import("@/views/MemView"),
   },
   {
-    path: "/:id",
+    path: "/memage/:id",
     name: "memage-detail",
     component: () => import("@/views/MemageDetailView"),
     props: true,

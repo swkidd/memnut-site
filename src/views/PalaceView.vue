@@ -7,7 +7,7 @@
           v-bind="attrs"
           fab
           class="floating-button"
-          style="bottom: 100px; right: 25px;"
+          style="bottom: 50px; right: 25px;"
         >
           <v-icon>mdi-plus</v-icon>
         </v-btn>
@@ -80,8 +80,6 @@ export default {
 <style scoped>
 .floating-button {
   position: fixed;
-  right: 25px;
-  bottom: 25px;
   z-index: 50;
 }
 </style>

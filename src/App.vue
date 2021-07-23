@@ -21,7 +21,7 @@
 
         <v-list>
           <v-list-item>
-            <v-btn text to="memages">
+            <v-btn text :to="{ name: 'memages' }">
               Memages
             </v-btn>
           </v-list-item>
