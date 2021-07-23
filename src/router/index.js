@@ -28,6 +28,12 @@ const routes = [
     props: true,
   },
   {
+    path: "/post-quiz/:id",
+    name: "post-quiz",
+    component: () => import("@/views/PostQuizView"),
+    props: true,
+  },
+  {
     path: "/memages",
     name: "memages",
     component: () => import("@/views/MemView"),
