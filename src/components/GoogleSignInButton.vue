@@ -6,6 +6,7 @@ import Palace from "@/models/Palace";
 import Marker from "@/models/Marker";
 import MarkerMem from "@/models/MarkerMem";
 import Mem from "@/models/Mem";
+import Post from "@/models/Post";
 export default {
   name: "GoogleSignInButton",
   data () {
@@ -48,6 +49,8 @@ export default {
       Marker.fetch();
       MarkerMem.deleteAll();
       MarkerMem.fetch();
+      Post.deleteAll();
+      Post.fetch();
     },
     onFailure(error) {
       console.log("google sign in error", error);

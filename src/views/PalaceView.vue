@@ -25,16 +25,21 @@
     <v-container fluid justify="center" class="ma-5">
       <v-row>
         <v-col cols="12" sm="6" offset-sm="3" class="my-5">
+          <h2 class="ma-5">Palaces</h2>
           <v-card
             v-for="(palace, i) in palaces"
             :key="i"
             width="100%"
-            @click="goToPalace(palace.id)"
           >
             <v-card-title v-text="palace.title" />
             <v-card-text>
               {{ palace.text }}
             </v-card-text>
+            <v-card-actions>
+              <v-spacer />
+              <v-btn @click.prevent="goToPalace(palace.id)">go to palace</v-btn>
+              <v-btn @click.prevent="makePost(palace.id)">publish</v-btn>
+            </v-card-actions>
           </v-card>
         </v-col>
       </v-row>
@@ -44,6 +49,7 @@
 
 <script>
 import Palace from "@/models/Palace";
+import Post from "@/models/Post";
 export default {
   name: "PalaceView",
   data() {
@@ -73,6 +79,12 @@ export default {
       };
       Palace.update(palace);
     },
+    makePost(id) {
+      const post = {
+        palace_id: id,
+      }
+      Post.update(post)
+    }
   },
 };
 </script>

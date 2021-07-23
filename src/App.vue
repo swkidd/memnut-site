@@ -21,6 +21,11 @@
 
         <v-list>
           <v-list-item>
+            <v-btn text :to="{ name: 'posts' }">
+              Posts
+            </v-btn>
+          </v-list-item>
+          <v-list-item>
             <v-btn text :to="{ name: 'memages' }">
               Memages
             </v-btn>

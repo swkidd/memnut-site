@@ -7,6 +7,7 @@ import Marker from '@/models/Marker'
 import Memage from '@/models/Memage'
 import Mem from '@/models/Mem'
 import MarkerMem from '@/models/MarkerMem'
+import Post from '@/models/Post'
 
 Vue.use(Vuex)
 
@@ -20,6 +21,7 @@ database.register(Marker)
 database.register(Memage)
 database.register(Mem)
 database.register(MarkerMem)
+database.register(Post)
 
 // Create Vuex Store and register database through Vuex ORM.
 const store = new Vuex.Store({
