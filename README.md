@@ -1,25 +1,5 @@
 # memnut
 
-## Project setup
-```
-yarn install
-```
+[MEMNUT](https://memnut.com) is a location based learning platform made for memory athletes. MEMNUT allows memory athletes to create [memory palaces](https://en.wikipedia.org/wiki/Method_of_loci), an ancient memory technique used to remember large amounts of information. The app allows users to place 'location based flashcards' relating images to information. Those images can then be used in other locations as a reference. For instance, when [memorizing the order of a deck of cards](https://www.youtube.com/watch?v=rBjKX4e5cdg), athletes give an image to each card. Then each image is placed in a memory palace as a sort of story in the mind. MEMNUT allows these palaces to be stored and shared for other athletes to benefit from and add to.
 
-### Compiles and hot-reloads for development
-```
-yarn serve
-```
-
-### Compiles and minifies for production
-```
-yarn build
-```
-
-### Lints and fixes files
-```
-yarn lint
-```
-
-### Customize configuration
-See [Configuration Reference](https://cli.vuejs.org/config/).
-# ji
+Built with Vue, Vuetify and Vuex-ORM. Backend in AWS through API Gateway, Lambda, DynamoDB and S3 and using Google SignIn for auth2 authorization. Users upload images through pre-signed post URLs to S3. Users can then edit images in app using FabricJS.
